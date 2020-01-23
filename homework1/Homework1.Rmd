@@ -143,6 +143,58 @@ $$
 
 **Answer:**
 
+_Proof_
+
+
+$\Rightarrow$
+
+
+Assume that $f$ is convex. Then we know the first order Taylor expansion is a global underestimate of the derivative. Expand the approximation of $f(x)$ around $y$ and $f(y)$ around $x$. This gives us the following equations.
+
+\begin{align*}
+	f(x) & \geq f(y) + \nabla f(y)^T (x-y) \\
+	f(y) & \geq f(x) + \nabla f(x)^T (y-x)
+\end{align*}
+
+We can then add these equations together.
+
+\begin{align*}
+	f(x) + f(y) & \geq f(y) + \nabla f(y)^T (x-y) + f(x) + \nabla f(y)^T (x-y) \\
+	0 & \geq \nabla f(x)^T (y-x) + \nabla f(y)^T (x-y) \\
+	-\nabla f(x)^T (y-x) - \nabla f(y)^T (x-y) & \geq 0 \\
+	\nabla f(x)^T (x-y) - \nabla f(y)^T (x-y) & \geq 0 \\
+	(\nabla f(x) - \nabla f(y))^T (x-y) & \geq 0 \\
+  \langle f(x) - \nabla f(y))^T, (x-y)\rangle & \geq 0
+\end{align*}
+
+
+$\Leftarrow$
+
+
+Let's proceed by contradiction. Assume that $f$ is not convex, but we still have the relationship 
+
+$$
+\langle \nabla f(\V{x}) - \nabla f(\V{y}), \V{x} - \V{y} \rangle \geq 0, \quad\quad\quad \forall \V{x}, \V{y} \in \Real^n.
+$$
+
+Since $f$ is not convex, we have the following, 
+
+\begin{align*}
+	f(x) & \leq f(y) + \nabla f(y)^T (x-y) \\
+	f(y) & \leq f(x) + \nabla f(x)^T (y-x).
+\end{align*}
+
+We can again add these together to get 
+
+\begin{align*}
+	f(x) + f(y) & \leq f(y) + \nabla f(y)^T (x-y) +  f(x) + \nabla f(x)^T (y-x)\\
+  0 & \leq \nabla f(y)^T (x-y) + \nabla f(x)^T (y-x) \\
+	(\nabla f(x) - \nabla f(y))^T (x-y) & \leq 0 \\
+  \langle f(x) - \nabla f(y))^T, (x-y)\rangle & \leq 0.
+\end{align*}
+
+However, this contradicts our assumption, thus $f$ must be convex.
+
 
 ## 5
 
@@ -165,6 +217,70 @@ The $d_{ij}$ are given. These are non-negative distances between $i$ and $j$. Th
 
 **Answer:**
 
+Our goal is to show
+
+$$
+d(\underbrace{\alpha p_1 + (1-\alpha) p_2}_{p_*}, \underbrace{\alpha q_1 + (1-\alpha)q_2}_{q^*}) \leq \alpha d(p_1, q_1) + (1-\alpha)d(p_2, q_2).
+$$
+
+Defining $p^*$ and $q^*$ as above, we can rewrite our conditions.
+
+
+\begin{align*}
+		d(\alpha p_1 + (1-\alpha) p_2, \alpha q_1 + (1-\alpha)q_2) & = \min_{f_{i,j}} \sum_{i  }^{  n} \sum_{ j }^{ n } f_{i,j} d_{i,j} \\
+		\text{Subject the following closed set.} \\
+		\text{Call it } A_{p^*, q^*} \\
+		\sum f_{i,j} & > 0 \\
+		\sum_{j  } \leq p_i^* \\
+		\sum_{ i }f_{i,j} \leq q_i^* \\
+		\sum \sum f_{i,j} = 1
+\end{align*}
+
+Then we can write this minimization as 
+
+$$
+\min_{f_{i,j} \in A_{p^*, q^*}} \sum_{i   }^{  n} \sum_{ j }^{ n } f_{i,j} d_{i,j}.
+$$
+
+Similarly,
+
+$$
+d(p_1, q_1) = \min_{f_{i,j} \in A_{p_1, q_1}} \sum_{i   }^{  n} \sum_{ j }^{ n } f_{i,j} d_{i,j}.
+$$
+
+Since the set is closed, we know the minimized values are in the set itself, so take them to be $x_{i,j}$.
+
+$$
+d(p_1, q_1) =  \sum_{i   }^{  n} \sum_{ j }^{ n } x_{i,j} d_{i,j}.
+$$
+
+Thus,
+
+
+\begin{align*}
+		\alpha d(p_1, q_1) + (1-\alpha) d(p_2, q_2) & = \alpha \sum_{i   }^{  n} \sum_{ j }^{ n } x_{i,j} d_{i,j} + (1-\alpha) \sum_{i   }^{  n} \sum_{ j }^{ n } y_{i,j} d_{i,j} \\
+		  & = \sum_{i } \sum_{j} \underbrace{(\alpha x_{i,j} + (1-\alpha) y_{i,j})}_{f_{i,j}^*} d_{i,j}
+\end{align*}
+
+Now let's look at the constraints on this.
+
+\begin{align*}
+	f_{i,j}^* & \geq 0 \\
+	\sum_{j} f_{i,j}^* & = \alpha \sum_{j} x_{i,j} + (1 - \alpha) \sum_{j} y_{i,j} \\
+	  & \leq \alpha p_{1, i}+ (1-\alpha) q_{2, i} \\
+	  & = p_i^* \\ \\
+	\sum_{i} f_{i,j}^* & = \alpha \sum_{i} x_{i,j} + (1 - \alpha) \sum_{i} y_{i,j} \\
+	  & \leq \alpha p_{j, 1}+ (1-\alpha) q_{j, 2} \\
+	  & = q_j^* \\ \\
+\end{align*}
+
+Because of these last constraints, we know that $f_{i,j}^* \in f_{i,j}$. And since we have already minimized, we know
+
+$$
+\sum \sum f_{i,j} d_{i,j} \leq \sum\sum f_{i, j}^* d_{i,j} = \alpha d(p_1, q_1) + (1-\alpha) d(p_2, q_2).
+$$
+
+Thus, our function $d$ is convex.
 
 ## 6
 
@@ -175,13 +291,15 @@ The $d_{ij}$ are given. These are non-negative distances between $i$ and $j$. Th
 
 Notice that $A$ looks like the following.
 
-``` {r, echo=FALSE, fig.align='center', fig.height=4, fig.width=4}
+``` {r, echo=FALSE, warning=FALSE, fig.align='center', fig.height=4, fig.width=4}
+library("plotrix")
 plot(NULL, xlab="", ylab="", xlim=c(-10, 10), ylim=c(-10, 10), axes = TRUE)
 abline(v=0, col = "blue")
 abline(h=0, col = "blue")
+draw.circle(0,0,0.25,nv=1000,border=NULL,lty=1,lwd=1, col="white")
 ```
 
-The convex kernel of $A$ is $D = \{x \in C: (x,y) \subset C, \forall y \in C \}$ where $(x,y) = \{ z: z = \alpha x + (1-\alpha)y, \forall \alpha \in (0,1)\}$. In words, $d$ is in the convex kernel of $A$ if a line can be drawn from $d$ to and point in $A$ and the whole line is in $A$. Thus, the only point in the convex kernel of $A$ is $(0,0)$.
+The convex kernel of $A$ is $D = \{x \in C: (x,y) \subset C, \forall y \in C \}$ where $(x,y) = \{ z: z = \alpha x + (1-\alpha)y, \forall \alpha \in (0,1)\}$. In words, $d$ is in the convex kernel of $A$ if a line can be drawn from $d$ to and point in $A$ and the whole line is in $A$. Thus, the only point in the convex kernel of $A$ would be $(0,0)$, however this point is not in $A$. Thus, the convex kernel is empty.
 
 \newpage
 
@@ -257,3 +375,5 @@ for (i in 1:(nRow*nCol)) {
   plot(t,g,type='l')
 }
 ```
+
+You can find my code for this in `jhickeyST790/R/convex_plot_restrictions.R` and `jhickeyST790/R/convex_functions.R`. It is run in `homework1/logdet_plot_restrictions.R`.
