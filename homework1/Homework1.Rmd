@@ -294,8 +294,21 @@ Notice that $A$ looks like the following.
 ``` {r, echo=FALSE, warning=FALSE, fig.align='center', fig.height=4, fig.width=4}
 library("plotrix")
 plot(NULL, xlab="", ylab="", xlim=c(-10, 10), ylim=c(-10, 10), axes = TRUE)
-abline(v=0, col = "blue")
-abline(h=0, col = "blue")
+# abline(v=0, col = "blue")
+# abline(h=0, col = "blue")
+
+segments(x0=0, # Value from x (initial)
+         x1=100, # Value to x (final)
+         y0=0, # Value from y (initial)
+         y1=0, # Value to y (final)
+         col='blue')
+
+segments(x0=0, # Value from x (initial)
+         x1=0, # Value to x (final)
+         y0=0, # Value from y (initial)
+         y1=100, # Value to y (final)
+         col='blue')
+
 draw.circle(0,0,0.25,nv=1000,border=NULL,lty=1,lwd=1, col="white")
 ```
 
