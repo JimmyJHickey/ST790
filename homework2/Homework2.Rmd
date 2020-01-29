@@ -1,0 +1,231 @@
+---
+title: "Homework 2"
+author: "Your Name"
+date: "Due @ 5pm on February 7, 2020"
+header-includes:
+  - \usepackage{bm}
+  - \newcommand{\Real}{\mathbb{R}}
+  - \newcommand{\dom}{{\bf dom}\,}
+  - \newcommand{\Tra}{^{\sf T}} % Transpose
+  - \newcommand{\Inv}{^{-1}} % Inverse
+  - \def\vec{\mathop{\rm vec}\nolimits}
+  - \newcommand{\diag}{\mathop{\rm diag}\nolimits}
+  - \newcommand{\tr}{\operatorname{tr}} % Trace
+  - \newcommand{\epi}{\operatorname{epi}} % epigraph
+  - \newcommand{\V}[1]{{\bm{\mathbf{\MakeLowercase{#1}}}}} % vector
+  - \newcommand{\VE}[2]{\MakeLowercase{#1}_{#2}} % vector element
+  - \newcommand{\Vn}[2]{\V{#1}^{(#2)}} % n-th vector
+  - \newcommand{\Vtilde}[1]{{\bm{\tilde \mathbf{\MakeLowercase{#1}}}}} % vector
+  - \newcommand{\Vhat}[1]{{\bm{\hat \mathbf{\MakeLowercase{#1}}}}} % vector
+  - \newcommand{\VtildeE}[2]{\tilde{\MakeLowercase{#1}}_{#2}} % vector element
+  - \newcommand{\M}[1]{{\bm{\mathbf{\MakeUppercase{#1}}}}} % matrix
+  - \newcommand{\ME}[2]{\MakeLowercase{#1}_{#2}} % matrix element
+  - \newcommand{\Mtilde}[1]{{\bm{\tilde \mathbf{\MakeUppercase{#1}}}}} % matrix
+  - \newcommand{\Mbar}[1]{{\bm{\bar \mathbf{\MakeUppercase{#1}}}}} % matrix
+  - \newcommand{\Mn}[2]{\M{#1}^{(#2)}} % n-th matrix
+output: pdf_document
+---
+
+**Part 1.** We will work through some details on the Hodrick-Prescott (HP) filter for smoothing time series data. Let $\V{y} \in \Real^n$ denote the values of a signal sampled at $n$ time points. We assume the data has been generated from the model
+
+$$
+\V{y} = \V{\theta} + \V{e}
+$$
+where $\V{e} \in \Real^n$ is a noise vector of i.i.d. zero mean Gaussian random variable and $\V{\theta}$ is a smooth function, in the sense that its derivatives do not take on values that are "too big." The HP-filter seeks to recover a smooth $\V{\theta}$ by minimizing a penalized negative log-likelihood:
+
+$$
+\ell(\V{\theta}) = \frac{1}{2} \lVert \V{y} - \V{\theta} \rVert_2^2 + \frac{\lambda}{2} \lVert \Mn{D}{k}_n\V{\theta} \rVert_2^2,
+$$
+where $\lambda$ is a non-negative tuning parameter and $\Mn{D}{k}_n$ is the $k$th order differencing matrix for a signal of length $n$.
+
+$$
+	\Mn{D}{1}_n = \begin{pmatrix}
+	-1 & 1 & 0 & \cdots & 0 & 0 \\
+	0 & -1 & 1 & \cdots & 0 & 0 \\
+	\vdots & & & & & \\
+	0 & 0 & 0 & \cdots & -1 & 1 \\
+	\end{pmatrix} \in \Real^{n-1 \times n},
+$$
+and $\Mn{D}{k}_n = \Mn{D}{1}_{n-k+1}\Mn{D}{k-1}_n.$
+
+1. Write the gradient and Hessian of $\ell(\V{\theta})$.
+
+2. What is the computational complexity for a calculating the gradient and Hessian of $\ell(\V{\theta})$? Be sure to take into account the sparsity in $\Mn{D}{k}_n$.
+
+3. Prove that $\ell(\V{\theta})$ is strongly convex.
+
+4. Prove that $\ell(\V{\theta})$ is $L$-Lipschitz differentiable with $L = 1 + \lambda\lVert \Mn{D}{k}_n \rVert_{\text{op}}^2$.
+
+8. Prove that $\ell(\V{\theta})$ has a unique global minimizer for all $\lambda \geq 0$.
+
+\newpage
+
+**Part 2.** Gradient Descent
+
+You will next add an implementation of gradient descent to your R package. Your function will include using both a fixed step-size as well as one chosen by backtracking.
+
+Please complete the following steps.
+
+**Step 0:** Make an R package entitled "unityidST790".
+
+**Step 1:** Write a function "gradient_step."
+
+```{r, echo=TRUE}
+#' Gradient Step
+#' 
+#' @param gradf handle to function that returns gradient of objective function
+#' @param x current parameter estimate
+#' @param t step-size
+#' @export
+gradient_step <- function(gradf, x, t) {
+  
+}
+```
+Your function should return $\V{x}^+ = \V{x} - t \nabla f(\V{x})$.
+
+**Step 2:** Write a function "gradient_descent_fixed." Your algorithm can stop iterating once the relative change in the objective function drops below `tol`.
+
+```{r, echo=TRUE}
+#' Gradient Descent (Fixed Step-Size)
+#'
+#' @param fx handle to function that returns objective function values
+#' @param gradf handle to function that returns gradient of objective function
+#' @param x0 initial parameter estimate
+#' @param t step-size
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+#' @export
+gradient_descent_fixed <- function(fx, gradf, x0, t, max_iter=1e2, tol=1e-3) {
+  
+}
+```
+Your function should return
+
+- The final iterate value
+- The objective function values
+- The 2-norm of the gradient values
+- The relative change in the function values
+- The relative change in the iterate values
+
+**Step 3:** Write a function "backtrack."
+
+```{r, echo=TRUE}
+#' Backtracking
+#' 
+#' @param fx handle to function that returns objective function values
+#' @param x current parameter estimate
+#' @param t current step-size
+#' @param df the value of the gradient of objective function evaluated at the current x
+#' @param alpha the backtracking parameter
+#' @param beta the decrementing multiplier
+#' @export
+backtrack <- function(fx, x, t, df, alpha=0.5, beta=0.9) {
+  
+}
+```
+Your function should return the selected step-size.
+
+**Step 4:** Write a function "gradient_descent_backtrack" that performs gradient descent using backtracking. Your algorithm can stop iterating once the relative change in the objective function drops below `tol`.
+
+```{r, echo=TRUE}
+#' Gradient Descent (Backtracking Step-Size)
+#' 
+#' @param fx handle to function that returns objective function values
+#' @param gradf handle to function that returns gradient of objective function
+#' @param x0 initial parameter estimate
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+#' @export
+gradient_descent_backtrack <- function(fx, gradf, x0, max_iter=1e2, tol=1e-3) {
+  
+}
+```
+Your function should return
+
+- The final iterate value
+- The objective function values
+- The 2-norm of the gradient values
+- The relative change in the function values
+- The relative change in the iterate values
+
+**Step 5:** Write a function "gradient_descent" that is a wrapper function for "gradient_descent_fixed" and "gradient_descent_backtrack." The default should be to use the backtracking.
+
+```{r, echo=TRUE}
+#' Gradient Descent
+#' 
+#' @param fx handle to function that returns objective function values
+#' @param gradf handle to function that returns gradient of objective function
+#' @param x0 initial parameter estimate
+#' @param t step-size
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+#' @export
+gradient_descent <- function(fx, gradf, x0, t=NULL, max_iter=1e2, tol=1e-3) {
+  
+}
+```
+Your function should return
+
+- The final iterate value
+- The objective function values
+- The 2-norm of the gradient values
+- The relative change in the function values
+- The relative change in the iterate values
+
+\newpage
+
+**Step 6:** Write a function to compute the $k$th order differencing matrix $\Mn{D}{k}_n$. Use the Matrix package by adding it to the dependency list in the DESCRIPTION file. Among other things, the Matrix package provides efficient storage and mulitplication for sparse matrices.
+
+```{r, echo=TRUE}
+#' Compute kth order differencing matrix
+#' 
+#' @param k order of the differencing matrix
+#' @param n Number of time points
+#' @export
+myGetDkn <- function(k, n) {
+  
+}
+```
+
+
+**Step 7:** Write functions 'fx_hp' and 'gradf_hp' to perform HP-filtering.
+
+```{r, echo=TRUE}
+#' Objective Function for HP-filtering
+#' 
+#' @param y response
+#' @param theta regression coefficient vector
+#' @param Dkn sparse differencing matrix
+#' @param lambda regularization parameter
+#' @export
+fx_hp <- function(y, theta, Dkn, lambda=0) {
+  
+}
+
+#' Gradient for HP-filtering
+#'
+#' @param y response
+#' @param theta regression coefficient vector
+#' @param Dkn sparse differencing matrix
+#' @param lambda regularization parameter
+#' @export
+gradf_hp <- function(y, theta, Dkn, lambda=0) {
+  
+}
+```
+
+**Step 8:** Perform HP-filtering (with $\lambda = 100$) on the following data example using the fixed step-size. Use your answers to Part 1 to choose an appropriate fixed step-size. Try using $\V{0}$ and $\V{y}$ as initial values for $\V{\theta}$. Plot the difference $\ell(\V{\theta}_m) - \ell(\V{\theta}_{1000})$ versus the iteration $m$. Comment on the shape of the plot given what you know about the iteration complexity of gradient descent with a fixed step size.
+
+```{r, echo=TRUE}
+set.seed(12345)
+n <- 1e2
+x <- seq(0, 5, length.out=n)
+y <- sin(pi*x) + x + 0.5*rnorm(n)
+```
+
+- Also plot the noisy data, as points, and smoothed estimates, as a line.
+
+**Step 9:** Perform HP-filtering (with $\lambda = 100$) on the simulated data above using backtracking. Try using $\V{0}$ and $\V{y}$ as initial values for $\V{\theta}$. Plot the difference $\ell(\V{\theta}_m) - \ell(\V{\theta}_{1000})$ versus the iteration $m$. Comment on the shape of the plot given what you know about the iteration complexity of gradient descent with backtracking.
+
+**Step 10:** Use your code above to smooth some interesting time series data. For example, you might use the tseries R package on CRAN (see the function **get.hist.quote**) to download historical financial data for the daily closing prices of Apple stock over the past two years. Try at least 3 different $\lambda$ values - different enough to generate noticably different smoothed estimates - and at least two differencing matrix orders, e.g. $\Mn{D}{2}$ and $\Mn{D}{3}$. For all six $\lambda$ and differencing matrices combinations, plot the noisy data, as points, and smoothed estimates, as a line.
+
