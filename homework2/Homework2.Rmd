@@ -1,6 +1,6 @@
 ---
 title: "Homework 2"
-author: "Your Name"
+author: "Jimmy Hickey"
 date: "Due @ 5pm on February 7, 2020"
 header-includes:
   - \usepackage{bm}
@@ -26,6 +26,7 @@ header-includes:
 output: pdf_document
 ---
 
+# 1
 **Part 1.** We will work through some details on the Hodrick-Prescott (HP) filter for smoothing time series data. Let $\V{y} \in \Real^n$ denote the values of a signal sampled at $n$ time points. We assume the data has been generated from the model
 
 $$
@@ -48,18 +49,61 @@ $$
 $$
 and $\Mn{D}{k}_n = \Mn{D}{1}_{n-k+1}\Mn{D}{k-1}_n.$
 
+## 1
+
 1. Write the gradient and Hessian of $\ell(\V{\theta})$.
+
+Recall that for vectors $a$ and $b$ and matrix $A$
+
+$$
+\frac{  \partial a^T b }{\partial b  } = a, \ \frac{  \partial b^T A b}{ \partial b  } = (A + A^T)b
+$$
+
+\begin{align*}
+\ell (\theta) & = \frac{1}{2} \lVert \V{y} - \V{\theta} \rVert_2^2 + \frac{\lambda}{2} \lVert \Mn{D}{k}_n\V{\theta} \rVert_2^2 \\
+	  & = \frac{ 1 }{  2} (y-\theta)^T (y-\theta) - \frac{ \lambda }{  2}(\Mn{D}{k}_n \theta)^T(\Mn{D}{k}_n \theta)^T \\
+	  & = \frac{ 1 }{  2} \Big[ y^T y - y^T \theta - \theta^T y - \theta^T \theta  \Big] + \frac{\lambda  }{2  } \theta^T (\Mn{D}{k}_n)^T \Mn{D}{k}_n \theta \\
+	  & = \frac{ 1 }{  2} \Big[ y^T y - y^T \theta - y^T \theta - \theta^T \theta  \Big] + \frac{\lambda  }{2  } \theta^T (\Mn{D}{k}_n)^T \Mn{D}{k}_n \theta & y^T \theta \text{ is a scalar} \\ \\
+\nabla \ell (\theta) & = \frac{ 1 }{  2}(0 - 2y - 2 \theta) + \frac{\lambda  }{2  } \Big[ (\Mn{D}{k}_n)^T \Mn{D}{k}_n + ((\Mn{D}{k}_n)^T \Mn{D}{k}_n)^T \Big] \theta \\
+	 & = -y - \theta + \lambda (\Mn{D}{k}_n)^T \Mn{D}{k}_n \theta \\ \\
+\nabla^2 \ell (\theta) & 0 + I + \lambda ((\Mn{D}{k}_n)^T \Mn{D}{k}_n)^T \\
+  & = I + \lambda (\Mn{D}{k}_n)^T \Mn{D}{k}_n
+\end{align*}
+
+## 2
 
 2. What is the computational complexity for a calculating the gradient and Hessian of $\ell(\V{\theta})$? Be sure to take into account the sparsity in $\Mn{D}{k}_n$.
 
+## 3
+
 3. Prove that $\ell(\V{\theta})$ is strongly convex.
+
+We will use the condition
+
+$$
+\nabla^2 f(x) \succeq m I
+$$
+
+which means that $\nabla^2 f(x) - mI$ is positive semidefinite for $m > 0$. If we take $m = 1$ then
+
+$$
+\nabla^2 f(x) - mI = I - \lambda (\Mn{D}{k}_n)^T \Mn{D}{k}_n - I = \lambda (\Mn{D}{k}_n)^T \Mn{D}{k}_n.
+$$
+
+Notice that $\lambda > 0$ and since we have a matrix multiplied by its transpose, we know that this is always positive semidefinite. Thus, we have strong convexity.   
+
+## 4
 
 4. Prove that $\ell(\V{\theta})$ is $L$-Lipschitz differentiable with $L = 1 + \lambda\lVert \Mn{D}{k}_n \rVert_{\text{op}}^2$.
 
-8. Prove that $\ell(\V{\theta})$ has a unique global minimizer for all $\lambda \geq 0$.
+## 5
+
+5. Prove that $\ell(\V{\theta})$ has a unique global minimizer for all $\lambda \geq 0$.
 
 \newpage
 
+
+# 2
 **Part 2.** Gradient Descent
 
 You will next add an implementation of gradient descent to your R package. Your function will include using both a fixed step-size as well as one chosen by backtracking.
