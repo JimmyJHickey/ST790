@@ -5,7 +5,7 @@
 #' @param Dkn sparse differencing matrix
 #' @param lambda regularization parameter
 #' @export
-hp_objective <- function(y, theta, Dkn, lambda = 0)
+fx_hp <- function(y, theta, Dkn, lambda = 0)
 {
   return(0.5 * sum((y-theta)^2) + (lambda/2) * sum((as.vector(Dkn %*% theta))^2) )
 }
@@ -18,7 +18,7 @@ hp_objective <- function(y, theta, Dkn, lambda = 0)
 #' @param Dkn sparse differencing matrix
 #' @param lambda regularization parameter
 #' @export
-hp_objective_gradient <- function(y, theta, Dkn, lambda = 0)
+gradf_hp <- function(y, theta, Dkn, lambda = 0)
 {
   return(-y + theta + lambda * as.vector(crossprod(Dkn) %*% theta) )
 }
