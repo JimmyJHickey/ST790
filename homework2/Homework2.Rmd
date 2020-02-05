@@ -96,9 +96,30 @@ Notice that $\lambda > 0$ and since we have a matrix multiplied by its transpose
 
 4. Prove that $\ell(\V{\theta})$ is $L$-Lipschitz differentiable with $L = 1 + \lambda\lVert \Mn{D}{k}_n \rVert_{\text{op}}^2$.
 
+Recall that for matrices $||\cdot ||_{2} = ||\cdot ||_{op}$. Thus,
+
+$$
+||\nabla^2 \ell(\V{\theta}) ||_{2} = || \nabla^2 \ell(\V{\theta}) ||_{op} \leq L
+$$
+
+We can proceed with the triangle inequality.
+
+\begin{align*}
+	||\nabla^2 \ell(\V{\theta}) ||_{op} & = ||I + \lambda (\Mn{D}{k}_n)^T \Mn{D}{k}_n ||_{op} \\
+	  & \leq ||I||_{op} + || \lambda (\Mn{D}{k}_n)^T \Mn{D}{k}_n|| & \text{Triangle Inequality} \\
+	  & = 1 + \lambda || (\Mn{D}{k}_n)^T \Mn{D}{k}_n ||_{op} \\
+	  & \leq 1 + \lambda ||(\Mn{D}{k}_n)^T||_{op} ||\Mn{D}{k}_n||_{op} & \text{Cauchy-Schwartz} \\
+	  & 1 + \lambda || \Mn{D}{k}_n ||_{op} & ||A^T||_{op}= ||A||_{op}
+\end{align*}
+
+Thus, take $L = 1 + \lambda || \Mn{D}{k}_n ||_{op}$.
+
+
 ## 5
 
 5. Prove that $\ell(\V{\theta})$ has a unique global minimizer for all $\lambda \geq 0$.
+
+One condition to have a unique global minimizer is that a function is both strongly convex and coercive. From 3. we have strong convexity. Notice that all of the norms in $\ell(\V{\theta})$ are squared. This means that all of the terms will be positive. As $||\theta||$ increases, so will these norms will all go to infinity as $||\theta|| \rightarrow \infty$. Thus, we have coercivity. Thus we have the sufficient conditions to say that $\ell(\V{\theta})$ has a unique global minimizer.
 
 \newpage
 
