@@ -64,9 +64,9 @@ $$
 	  & = \frac{ 1 }{  2} (y-\theta)^T (y-\theta) - \frac{ \lambda }{  2}(\Mn{D}{k}_n \theta)^T(\Mn{D}{k}_n \theta)^T \\
 	  & = \frac{ 1 }{  2} \Big[ y^T y - y^T \theta - \theta^T y - \theta^T \theta  \Big] + \frac{\lambda  }{2  } \theta^T (\Mn{D}{k}_n)^T \Mn{D}{k}_n \theta \\
 	  & = \frac{ 1 }{  2} \Big[ y^T y - y^T \theta - y^T \theta - \theta^T \theta  \Big] + \frac{\lambda  }{2  } \theta^T (\Mn{D}{k}_n)^T \Mn{D}{k}_n \theta & y^T \theta \text{ is a scalar} \\ \\
-\nabla \ell (\theta) & = \frac{ 1 }{  2}(0 - 2y - 2 \theta) + \frac{\lambda  }{2  } \Big[ (\Mn{D}{k}_n)^T \Mn{D}{k}_n + ((\Mn{D}{k}_n)^T \Mn{D}{k}_n)^T \Big] \theta \\
-	 & = -y - \theta + \lambda (\Mn{D}{k}_n)^T \Mn{D}{k}_n \theta \\ \\
-\nabla^2 \ell (\theta) & 0 + I + \lambda ((\Mn{D}{k}_n)^T \Mn{D}{k}_n)^T \\
+\nabla \ell (\theta) & = \frac{ 1 }{  2}(0 - 2y + 2 \theta) + \frac{\lambda  }{2  } \Big[ (\Mn{D}{k}_n)^T \Mn{D}{k}_n + ((\Mn{D}{k}_n)^T \Mn{D}{k}_n)^T \Big] \theta \\
+	 & = -y + \theta + \lambda (\Mn{D}{k}_n)^T \Mn{D}{k}_n \theta \\ \\
+\nabla^2 \ell (\theta) & = 0 + I + \lambda ((\Mn{D}{k}_n)^T \Mn{D}{k}_n)^T \\
   & = I + \lambda (\Mn{D}{k}_n)^T \Mn{D}{k}_n
 \end{align*}
 
