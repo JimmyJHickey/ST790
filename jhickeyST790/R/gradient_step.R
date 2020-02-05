@@ -27,8 +27,7 @@ gradient_descent_fixed <- function(fx, gradf, x0, t, max_iter=1e2, tol=1e-3) {
 
   # initialize variables
   current_x = x0
-  converged = FALSE
-  gradient_values[1]
+  gradient_values[1] = 0
 
 
   # perform gradient descent until either
@@ -38,25 +37,22 @@ gradient_descent_fixed <- function(fx, gradf, x0, t, max_iter=1e2, tol=1e-3) {
   {
 
 
-    gradient_values[i] = gradf(fx, current_x)
+    gradient_values[i] = gradf(y = y, theta = current_x, Dkn = Dkn, lambda = lambda)
     iterate_change[i] = gradient_values[i] - gradient_values[i-1]
 
     objective[i] = gradient_step(gradf(fx, current_x), current_x, t)
     current_x = objective[i]
-    objective_change[i] = objective[i] - objective[i-1]
+    objective_change[i] = abs(objective[i] - objective[i-1])/objective[i-1]
 
 
     # break if change less than tolerated amount
     if (objective_change[i] <= tol)
-    {
-      converged = TRUE
-      iterations = i
       break
-    }
+
   } # end for
 
   return_list = list(
-    "iterations" = iterations,
+    "final_iterate" = current_x,
     "objective_values" = objective,
     "gradient_values" = gradient_values,
     "objective_change" = objective_change,

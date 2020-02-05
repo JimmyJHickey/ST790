@@ -20,7 +20,7 @@ myGetDkn <- function(k, n)
     return(D1)
   } # endif
 
-  return( myGetDkn(k=1, n= n - k + 1) %*% myGetDkn(k=k-1, n=n))
+  return(myGetDkn(k=1, n=n - k + 1) %*% myGetDkn(k=k-1, n=n))
 
 }
 
