@@ -37,11 +37,8 @@ setup = function(y, k, n, lambda)
 orig_setup = setup(y=y, k=k, n=n, lambda = lambda)
 
 Dkn = orig_setup$Dkn
-
 lipschitz_step_size = orig_setup$step_size
-
 hp_objective_wrapper = orig_setup$hp_fx
-
 hp_gradient_wrapper = orig_setup$hp_grad
 
 
@@ -58,12 +55,16 @@ zero_no_backtracking = gradient_descent( fx = hp_objective_wrapper,
                   max_iter = 1e3,
                   tol = 1e-3
                   )
-plot(zero_no_backtracking$objective_history - zero_no_backtracking$objective_history[length(zero_no_backtracking$objective_history)])
 
+qplot(seq_along(zero_no_backtracking$objective_history),
+      zero_no_backtracking$objective_history - zero_no_backtracking$objective_history[length(zero_no_backtracking$objective_history)]) +
+  xlab("iteration") +
+  ylab(expression(l(theta[m]) - l(theta[max]))) +
+  ggtitle(expression(x[0] == 0), "fixed step size")
 
 zero_df = data.frame(cbind(x, y, zero_no_backtracking$final_iterate))
+ggplot(data = zero_df, aes(x = x)) + geom_point(aes(y = y)) + geom_line(aes(y = V3)) + ggtitle(expression(x[0] == 0), "fixed step size")
 
-ggplot(data = zero_df, aes(x = x)) + geom_point(aes(y = y)) + geom_line(aes(y = V3))
 
 # With backtracking
 zero_w_backtracking = gradient_descent( fx = hp_objective_wrapper,
@@ -72,7 +73,13 @@ zero_w_backtracking = gradient_descent( fx = hp_objective_wrapper,
                   max_iter = 1e3,
                   tol = 1e-3
 )
-plot(zero_w_backtracking$objective_history - zero_w_backtracking$objective_history[length(zero_w_backtracking$objective_history)])
+
+qplot(seq_along(zero_w_backtracking$objective_history),
+  zero_w_backtracking$objective_history - zero_w_backtracking$objective_history[length(zero_w_backtracking$objective_history)]) +
+    xlab("iteration") +
+  ylab(expression(l(theta[m]) - l(theta[max]))) +
+  ggtitle(expression(x[0] == 0), "backtracking")
+
 
 
 ###
@@ -88,11 +95,17 @@ y_no_backtracking = gradient_descent( fx = hp_objective_wrapper,
                                          max_iter = 1e3,
                                          tol = 1e-3
                                     )
-plot(y_no_backtracking$objective_history - y_no_backtracking$objective_history[length(y_no_backtracking$objective_history)])
+
+qplot(seq_along(y_no_backtracking$objective_history),
+      y_no_backtracking$objective_history - y_no_backtracking$objective_history[length(y_no_backtracking$objective_history)]) +
+  xlab("iteration") +
+  ylab(expression(l(theta[m]) - l(theta[max]))) +
+  ggtitle(expression(x[0] == y), "fixed")
 
 y_df = data.frame(cbind(x, y, zero_no_backtracking$final_iterate))
 
-ggplot(data = y_df, aes(x = x)) + geom_point(aes(y = y)) + geom_line(aes(y = V3))
+ggplot(data = y_df, aes(x = x)) + geom_point(aes(y = y)) + geom_line(aes(y = V3))+ ggtitle(expression(x[0] == y)) +   ggtitle(expression(x[0] == y), "fixed")
+
 
 
 
@@ -103,7 +116,16 @@ y_w_backtracking = gradient_descent( fx = hp_objective_wrapper,
                                         max_iter = 1e3,
                                         tol = 1e-3
                                     )
-plot(y_w_backtracking$objective_history - y_w_backtracking$objective_history[length(y_w_backtracking$objective_history)])
+
+
+
+qplot(seq_along(y_w_backtracking$objective_history),
+      y_w_backtracking$objective_history - y_w_backtracking$objective_history[length(y_w_backtracking$objective_history)]) +
+  xlab("iteration") +
+  ylab(expression(l(theta[m]) - l(theta[max]))) +
+  ggtitle(expression(x[0] == y), "backtracking")
+
+
 
 
 ###
@@ -142,22 +164,18 @@ apple_plots = function(k, lambda)
 
   aapl_1_df = data.frame(cbind(time_stock, aapl_no_backtracking$final_iterate))
   ggplot(data = aapl_1_df, aes(x = times)) +
-    # geom_point(aes(y = Close), size = 0.2) +
+    geom_point(aes(y = Close), size = 0.1) +
     geom_line(aes(y = aapl_no_backtracking.final_iterate)) +
     ggtitle(paste("Apple Stock Prices: ", expression(lambda), " =", lambda , ", k = ", k ))
 }
 
-apple_plots(k = 4, lambda = 100)
-apple_plots(k = 4, lambda = 150)
-
-apple_plots(k = 3, lambda = 0.5)
-apple_plots(k = 3, lambda = 3)
 
 apple_plots(k = 3, lambda = 0.005)
+apple_plots(k = 3, lambda = 0.5)
 apple_plots(k = 3, lambda = 15)
 
 
 apple_plots(k = 5, lambda = 0.005)
 apple_plots(k = 5, lambda = 0.5)
-apple_plots(k = 5, lambda = 10)
+apple_plots(k = 5, lambda = 15)
 
