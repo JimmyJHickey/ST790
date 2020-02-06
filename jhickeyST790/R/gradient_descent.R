@@ -19,7 +19,7 @@ gradient_step <- function(gradf, x, t) {
 #' @param beta the decrementing multiplier
 #' @export
 backtrack <- function(fx, x, t, df, alpha=0.5, beta=0.9) {
-  while( fx(x - t * df ) >= fx(x) - 0.5 * t * alpha * (t(df) %*% df) )
+  while( fx(x - t * df ) >= fx(x) - 0.5 * t * alpha * (t(df) %*% df) && t > 9e-17)
     t = t * beta
 
   return(t)
@@ -49,15 +49,18 @@ gradient_descent_fixed <- function(fx, gradf, x0, t, max_iter=1e2, tol=1e-3) {
   if (t <= 0)
     stop("Step size must be positive")
 
-  # initialize variables
-  current_x = x0
+  # create vectors
+  objective_history = c()
+  gradient_history = c()
+  relative_objective_history = c()
+  relative_iterate_history = c()
 
-  gradient_values = vector()
-  gradient_values[1] = 0
-  objective = vector()
-  objective[1] = fx(current_x)
-  steps = vector()
-  steps[1]=0
+  # initialize variables
+  current_iterate = x0
+  gradient_history[1] = 0
+  objective_history[1] = fx(current_iterate)
+  relative_objective_history[1] = 0
+  relative_iterate_history[1] = 0
 
   # perform gradient descent until either
   #   we have changed less than the tolerance
@@ -66,36 +69,118 @@ gradient_descent_fixed <- function(fx, gradf, x0, t, max_iter=1e2, tol=1e-3) {
   {
 
     # Calculate gradient for current x
-    # gradient_values[i] = gradf(current_x)
+    gradient_value = gradf(current_iterate)
+    gradient_history[i] = norm(gradient_value, '2')
 
+    # Gradient step to get new objective iterate value
+    new_iterate = gradient_step(gradient_value, current_iterate, t)
 
-    grad_value = gradf(current_x)
+    objective_history[i] = fx(new_iterate)
 
+    relative_objective_history[i] = abs((objective_history[i] - objective_history[i-1]))/(1 + abs(objective_history[i]))
+    relative_iterate_history[i] = norm(new_iterate - current_iterate, '2') / (1 + norm(new_iterate, '2'))
 
-    # Gradient step to get new objective function value
-    current_x = grad_step = gradient_step(grad_value, current_x, t)
-
-    objective[i] = fx(grad_step)
-
-    # iterate_change[i] = gradient_values[i] - gradient_values[i-1]
-    # objective_change[i] = abs(objective[i] - objective[i-1])/objective[i-1]
+    current_iterate = new_iterate
 
     # break if change less than tolerated amount
-    # if (objective_change[i] <= tol)
-    #   break
+    if (relative_objective_history[i] <= tol)
+      break
 
   } # end for
 
   return_list = list(
-    "final_iterate" = current_x,
-    "objective_values" = objective,
-    # "gradient_values" = gradient_values,
-    # "objective_change" = objective_change,
-    "iterate_change" = 1
+    "final_iterate" = current_iterate,
+    "objective_history" = objective_history,
+    "gradient_history" = gradient_history,
+    "relative_objective_history" = relative_objective_history,
+    "relative_iterate_history" = relative_iterate_history
   )
 
   return(return_list)
 }
 
 
+#' Gradient Descent (Backtracking Step-Size)
+#'
+#' @param fx handle to function that returns objective function values
+#' @param gradf handle to function that returns gradient of objective function
+#' @param x0 initial parameter estimate
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+#' @export
+gradient_descent_backtrack <- function(fx, gradf, x0, max_iter=1e2, tol=1e-3)
+{
+  # create vectors
+  objective_history = c()
+  gradient_history = c()
+  relative_objective_history = c()
+  relative_iterate_history = c()
 
+  # guess at step size
+  step_size = 1
+
+  # initialize variables
+  current_iterate = x0
+  gradient_history[1] = 0
+  objective_history[1] = fx(current_iterate)
+  relative_objective_history[1] = 0
+  relative_iterate_history[1] = 0
+
+  # perform gradient descent until either
+  #   we have changed less than the tolerance
+  #   we have done the maximum number of iterations
+  for (i in 2:max_iter)
+  {
+
+    # Calculate step size using backtracking
+    step_size = backtrack(fx, current_iterate, step_size, gradient_value, alpha = 0.5, beta = 0.9)
+
+    # Calculate gradient for current x
+    gradient_value = gradf(current_iterate)
+    gradient_history[i] = norm(gradient_value, '2')
+
+
+    # Gradient step to get new objective iterate value
+    new_iterate = gradient_step(gradient_value, current_iterate, step_size)
+
+    objective_history[i] = fx(new_iterate)
+
+    relative_objective_history[i] = abs((objective_history[i] - objective_history[i-1]))/(1 + abs(objective_history[i]))
+    relative_iterate_history[i] = norm(new_iterate - current_iterate, '2') / (1 + norm(new_iterate, '2'))
+
+    current_iterate = new_iterate
+
+    # break if change less than tolerated amount
+    if (relative_objective_history[i] <= tol)
+      break
+
+  } # end for
+
+  return_list = list(
+    "final_iterate" = current_iterate,
+    "objective_history" = objective_history,
+    "gradient_history" = gradient_history,
+    "relative_objective_history" = relative_objective_history,
+    "relative_iterate_history" = relative_iterate_history
+  )
+
+  return(return_list)
+}
+
+
+#' Gradient Descent Wrapper
+#'
+#' @param fx handle to function that returns objective function values
+#' @param gradf handle to function that returns gradient of objective function
+#' @param x0 initial parameter estimate
+#' @param t step-size
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+#' @export
+gradient_descent <- function(fx, gradf, x0, t=NULL, max_iter=1e2, tol=1e-3) {
+
+  if(is.null(t))
+    return(gradient_descent_backtrack(fx = fx, gradf = gradf, x0 = x0, max_iter = max_iter, tol = tol))
+  else
+    return(gradient_descent_fixed(fx = fx, gradf = gradf, x0 = x0, t = t, max_iter = max_iter, tol = tol))
+}
