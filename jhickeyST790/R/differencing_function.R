@@ -5,6 +5,7 @@
 #' @return kth order differencing matrix
 myGetDkn <- function(k, n)
 {
+  library(Matrix)
   # create D1n
   if (k==1)
   {
@@ -17,7 +18,7 @@ myGetDkn <- function(k, n)
       D1[i,i] = -1
       D1[i, i+1] = 1
     } # for
-    return(D1)
+    return(Matrix(D1, sparse = TRUE))
   } # endif
 
   return(myGetDkn(k=1, n=n - k + 1) %*% myGetDkn(k=k-1, n=n))
