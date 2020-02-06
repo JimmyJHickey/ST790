@@ -19,8 +19,8 @@ gradient_step <- function(gradf, x, t) {
 #' @param beta the decrementing multiplier
 #' @export
 backtrack <- function(fx, x, t, df, alpha=0.5, beta=0.9) {
-  while( fx(x - t * df ) >= fx(x) - 0.5 * t * alpha * (t(df) %*% df) && t > 9e-17)
-    t = t * beta
+  while( (fx(x - t * df ) >= fx(x) - t * alpha * norm(df, "2")^2)  & (t > 1e-10))
+      t <- t * beta
 
   return(t)
 }
@@ -132,13 +132,12 @@ gradient_descent_backtrack <- function(fx, gradf, x0, max_iter=1e2, tol=1e-3)
   for (i in 2:max_iter)
   {
 
-    # Calculate step size using backtracking
-    step_size = backtrack(fx, current_iterate, step_size, gradient_value, alpha = 0.5, beta = 0.9)
-
     # Calculate gradient for current x
     gradient_value = gradf(current_iterate)
     gradient_history[i] = norm(gradient_value, '2')
 
+    # Calculate step size using backtracking
+    step_size = backtrack(fx = fx, x = current_iterate, t = step_size, df = gradient_value, alpha = 0.5, beta = 0.9)
 
     # Gradient step to get new objective iterate value
     new_iterate = gradient_step(gradient_value, current_iterate, step_size)
