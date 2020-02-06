@@ -74,6 +74,34 @@ $$
 
 2. What is the computational complexity for a calculating the gradient and Hessian of $\ell(\V{\theta})$? Be sure to take into account the sparsity in $\Mn{D}{k}_n$.
 
+Recall that sparse matrix-vector multiplication scales with the number of nonzero elements in the sparse matrix. Similarly, sparse matrix-matrix multiplication scales in the number of rows times the number of nonzero elements. 
+
+Notice $\Mn{D}{k}_n \in \mathbb{R}^{(n-k)\times n}$ and have $nk$ nonzero elements.
+
+Let's start with the Hessian. 
+
+$$
+\nabla^2 \ell (\theta) = \underbrace{I + \overbrace{\lambda \underbrace{(\Mn{D}{k}_n)^T \Mn{D}{k}_n}_{\mathcal{O}(n (nk))}}^{\mathcal{O}( n^2 )}}_{\mathcal{O}( n )}
+$$
+The sparse matrix-matrix multiplication scales in $\mathcal{O}( n^2 k )$, then you multiply it by a scalar which is $\mathcal{O}( n^2 )$ because there are $n^2$ elements, and then finally the matrix-matrix addition is $\mathcal{O}( n^2 )$. This gives us
+
+$$
+\mathcal{O}(n^2 k + n^2 + n^2  ) = \mathcal{O}( n^2k )
+$$
+
+
+Now we can look the gradient. 
+
+$$
+\nabla \ell (\theta) = -y + \theta + \lambda \overbrace{(\Mn{D}{k}_n)^T \underbrace{(\Mn{D}{k}_n \cdot \theta)}_{O(nk)})}^{O(nk)}
+$$
+
+Notice that if we perform the sparse matrix-vector multiplication first gives us $\mathcal{O}(nk)$ whereas if we did the matrix-matrix multiplication first we would get $\mathcal{O}(n^2 k )$ as we saw in the Hessian. The scalar multiplication and vector addition above are all $\mathcal{O}(n  )$ so we have
+
+$$
+\mathcal{O}(n + n + n + nk + nk  ) = \mathcal{O}( nk )
+$$
+
 ## 3
 
 3. Prove that $\ell(\V{\theta})$ is strongly convex.
