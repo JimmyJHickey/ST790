@@ -5,12 +5,11 @@ set.seed(12345)
 n = 1e2
 x = seq(0, 5, length.out = n)
 y = sin(pi*x) + x + 0.5*rnorm(n)
-k = 5
+k = 1
 
-# theta = 0, lambda = 100
+# theta = 0-5, lambda = 100
 
-theta = rep(0, n)
-lambda = 10000
+lambda = 100
 
 Dkn = myGetDkn(k, n)
 
@@ -24,40 +23,61 @@ hp_gradient_wrapper = function(x)
   gradf_hp(y = y, theta = x, Dkn = Dkn, lambda = lambda)
 
 
-gradient_descent_fixed( fx = hp_objective_wrapper,
-                        gradf = hp_gradient_wrapper,
-                        x0 = x,
-                        t = lipschitz_step_size,
-                        max_iter = 1e2,
-                        tol = 1e-3
-                        )
-# testing
+###
+# theta = 0, lambda = 100
+###
+theta=rep(0, n)
+
+# Without backtracking
+zero_no_backtracking = gradient_descent( fx = hp_objective_wrapper,
+                  gradf = hp_gradient_wrapper,
+                  x0 = theta,
+                  t = lipschitz_step_size,
+                  max_iter = 1e3,
+                  tol = 1e-3
+                  )
+plot(zero_no_backtracking$objective_history - zero_no_backtracking$objective_history[length(zero_no_backtracking$objective_history)])
+
+# With backtracking
+zero_w_backtracking = gradient_descent( fx = hp_objective_wrapper,
+                  gradf = hp_gradient_wrapper,
+                  x0 = theta,
+                  max_iter = 1e3,
+                  tol = 1e-3
+)
+plot(zero_w_backtracking$objective_history - zero_w_backtracking$objective_history[length(zero_w_backtracking$objective_history)])
 
 
-gradient_value = hp_gradient_wrapper(x)
-step = gradient_step(gradient_value, x, lipschitz_step_size)
-q = hp_objective_wrapper(step)
-
-# hp_objective(y = y, theta = theta, Dkn = Dkn, lambda = lambda)
-# hp_objective_gradient(y = y, theta = theta, Dkn = Dkn, lambda = lambda)
-#
-# x2 = gradient_step(gradf = hp_objective_gradient(y = y, theta = theta, Dkn = Dkn, lambda = lambda),
-#                    x = x, t = step_size)
-#
-# x3 = gradient_step(gradf = hp_objective_gradient(y = y, theta = x2, Dkn = Dkn, lambda = lambda),
-#                    x = x2, t = step_size)
-#
-# x4 = gradient_step(gradf = hp_objective_gradient(y = y, theta = x3, Dkn = Dkn, lambda = lambda),
-#                    x = x3, t = step_size)
-#
-# hp_objective(y = y, theta = theta, Dkn = Dkn, lambda = lambda)
-# hp_objective(y = y, theta = x2, Dkn = Dkn, lambda = lambda)
-# hp_objective(y = y, theta = x3, Dkn = Dkn, lambda = lambda)
-# hp_objective(y = y, theta = x4, Dkn = Dkn, lambda = lambda)
-
-
-
+###
 # theta = y, lambda = 100
+###
 
 theta = y
-lambda = 100
+# Without backtracking
+y_no_backtracking = gradient_descent( fx = hp_objective_wrapper,
+                                         gradf = hp_gradient_wrapper,
+                                         x0 = theta,
+                                         t = lipschitz_step_size,
+                                         max_iter = 1e3,
+                                         tol = 1e-3
+)
+plot(y_no_backtracking$objective_history - y_no_backtracking$objective_history[length(y_no_backtracking$objective_history)])
+
+# With backtracking
+y_w_backtracking = gradient_descent( fx = hp_objective_wrapper,
+                                        gradf = hp_gradient_wrapper,
+                                        x0 = theta,
+                                        max_iter = 1e3,
+                                        tol = 1e-3
+)
+plot(y_w_backtracking$objective_history - y_w_backtracking$objective_history[length(y_w_backtracking$objective_history)])
+
+
+###
+# time series data
+###
+library(tseries)
+apple_data = get.hist.quote( instrument = "AAPL",
+                             start = "2018-01-01",
+                             end = "2020-01-01",
+                             quote="Close")
