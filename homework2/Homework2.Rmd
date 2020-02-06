@@ -24,6 +24,7 @@ header-includes:
   - \newcommand{\Mbar}[1]{{\bm{\bar \mathbf{\MakeUppercase{#1}}}}} % matrix
   - \newcommand{\Mn}[2]{\M{#1}^{(#2)}} % n-th matrix
 output: pdf_document
+
 ---
 
 # 1
@@ -165,6 +166,8 @@ Please complete the following steps.
 **Step 1:** Write a function "gradient_step."
 
 ```{r, echo=TRUE}
+# This can be found in my gradient_descent.R file
+
 #' Gradient Step
 #' 
 #' @param gradf handle to function that returns gradient of objective function
@@ -172,7 +175,7 @@ Please complete the following steps.
 #' @param t step-size
 #' @export
 gradient_step <- function(gradf, x, t) {
-  
+  return(x - t * gradf)
 }
 ```
 Your function should return $\V{x}^+ = \V{x} - t \nabla f(\V{x})$.
@@ -180,6 +183,8 @@ Your function should return $\V{x}^+ = \V{x} - t \nabla f(\V{x})$.
 **Step 2:** Write a function "gradient_descent_fixed." Your algorithm can stop iterating once the relative change in the objective function drops below `tol`.
 
 ```{r, echo=TRUE}
+# This can be found in my gradient_descent.R file
+
 #' Gradient Descent (Fixed Step-Size)
 #'
 #' @param fx handle to function that returns objective function values
@@ -190,7 +195,58 @@ Your function should return $\V{x}^+ = \V{x} - t \nabla f(\V{x})$.
 #' @param tol convergence tolerance
 #' @export
 gradient_descent_fixed <- function(fx, gradf, x0, t, max_iter=1e2, tol=1e-3) {
-  
+  # Check that step size is positive
+  if (t <= 0)
+    stop("Step size must be positive")
+
+  # create vectors
+  objective_history = c()
+  gradient_history = c()
+  relative_objective_history = c()
+  relative_iterate_history = c()
+
+  # initialize variables
+  current_iterate = x0
+  gradient_history[1] = 0
+  objective_history[1] = fx(current_iterate)
+  relative_objective_history[1] = 0
+  relative_iterate_history[1] = 0
+
+  # perform gradient descent until either
+  #   we have changed less than the tolerance
+  #   we have done the maximum number of iterations
+  for (i in 2:max_iter)
+  {
+
+    # Calculate gradient for current x
+    gradient_value = gradf(current_iterate)
+    gradient_history[i] = norm(gradient_value, '2')
+
+    # Gradient step to get new objective iterate value
+    new_iterate = gradient_step(gradient_value, current_iterate, t)
+
+    objective_history[i] = fx(new_iterate)
+
+    relative_objective_history[i] = abs((objective_history[i] - objective_history[i-1]))/(1 + abs(objective_history[i]))
+    relative_iterate_history[i] = norm(new_iterate - current_iterate, '2') / (1 + norm(new_iterate, '2'))
+
+    current_iterate = new_iterate
+
+    # break if change less than tolerated amount
+    if (relative_objective_history[i] <= tol)
+      break
+
+  } # end for
+
+  return_list = list(
+    "final_iterate" = current_iterate,
+    "objective_history" = objective_history,
+    "gradient_history" = gradient_history,
+    "relative_objective_history" = relative_objective_history,
+    "relative_iterate_history" = relative_iterate_history
+  )
+
+  return(return_list)
 }
 ```
 Your function should return
@@ -204,6 +260,8 @@ Your function should return
 **Step 3:** Write a function "backtrack."
 
 ```{r, echo=TRUE}
+# This can be found in my gradient_descent.R file
+
 #' Backtracking
 #' 
 #' @param fx handle to function that returns objective function values
@@ -214,7 +272,10 @@ Your function should return
 #' @param beta the decrementing multiplier
 #' @export
 backtrack <- function(fx, x, t, df, alpha=0.5, beta=0.9) {
-  
+    while( (fx(x - t * df ) >= fx(x) - t * alpha * norm(df, "2")^2)  & (t > 1e-10))
+      t <- t * beta
+
+  return(t)
 }
 ```
 Your function should return the selected step-size.
@@ -222,6 +283,8 @@ Your function should return the selected step-size.
 **Step 4:** Write a function "gradient_descent_backtrack" that performs gradient descent using backtracking. Your algorithm can stop iterating once the relative change in the objective function drops below `tol`.
 
 ```{r, echo=TRUE}
+# This can be found in my gradient_descent.R file
+
 #' Gradient Descent (Backtracking Step-Size)
 #' 
 #' @param fx handle to function that returns objective function values
@@ -231,7 +294,60 @@ Your function should return the selected step-size.
 #' @param tol convergence tolerance
 #' @export
 gradient_descent_backtrack <- function(fx, gradf, x0, max_iter=1e2, tol=1e-3) {
-  
+    # create vectors
+  objective_history = c()
+  gradient_history = c()
+  relative_objective_history = c()
+  relative_iterate_history = c()
+
+  # guess at step size
+  step_size = 1
+
+  # initialize variables
+  current_iterate = x0
+  gradient_history[1] = 0
+  objective_history[1] = fx(current_iterate)
+  relative_objective_history[1] = 0
+  relative_iterate_history[1] = 0
+
+  # perform gradient descent until either
+  #   we have changed less than the tolerance
+  #   we have done the maximum number of iterations
+  for (i in 2:max_iter)
+  {
+
+    # Calculate gradient for current x
+    gradient_value = gradf(current_iterate)
+    gradient_history[i] = norm(gradient_value, '2')
+
+    # Calculate step size using backtracking
+    step_size = backtrack(fx = fx, x = current_iterate, t = step_size, df = gradient_value, alpha = 0.5, beta = 0.9)
+
+    # Gradient step to get new objective iterate value
+    new_iterate = gradient_step(gradient_value, current_iterate, step_size)
+
+    objective_history[i] = fx(new_iterate)
+
+    relative_objective_history[i] = abs((objective_history[i] - objective_history[i-1]))/(1 + abs(objective_history[i]))
+    relative_iterate_history[i] = norm(new_iterate - current_iterate, '2') / (1 + norm(new_iterate, '2'))
+
+    current_iterate = new_iterate
+
+    # break if change less than tolerated amount
+    if (relative_objective_history[i] <= tol)
+      break
+
+  } # end for
+
+  return_list = list(
+    "final_iterate" = current_iterate,
+    "objective_history" = objective_history,
+    "gradient_history" = gradient_history,
+    "relative_objective_history" = relative_objective_history,
+    "relative_iterate_history" = relative_iterate_history
+  )
+
+  return(return_list)
 }
 ```
 Your function should return
@@ -245,6 +361,9 @@ Your function should return
 **Step 5:** Write a function "gradient_descent" that is a wrapper function for "gradient_descent_fixed" and "gradient_descent_backtrack." The default should be to use the backtracking.
 
 ```{r, echo=TRUE}
+# This can be found in my gradient_descent.R file
+
+
 #' Gradient Descent
 #' 
 #' @param fx handle to function that returns objective function values
@@ -256,6 +375,10 @@ Your function should return
 #' @export
 gradient_descent <- function(fx, gradf, x0, t=NULL, max_iter=1e2, tol=1e-3) {
   
+  if(is.null(t))
+    return(gradient_descent_backtrack(fx = fx, gradf = gradf, x0 = x0, max_iter = max_iter, tol = tol))
+  else
+    return(gradient_descent_fixed(fx = fx, gradf = gradf, x0 = x0, t = t, max_iter = max_iter, tol = tol))
 }
 ```
 Your function should return
@@ -271,13 +394,32 @@ Your function should return
 **Step 6:** Write a function to compute the $k$th order differencing matrix $\Mn{D}{k}_n$. Use the Matrix package by adding it to the dependency list in the DESCRIPTION file. Among other things, the Matrix package provides efficient storage and mulitplication for sparse matrices.
 
 ```{r, echo=TRUE}
+# This can be found in my differencing_function.R file
+
 #' Compute kth order differencing matrix
 #' 
 #' @param k order of the differencing matrix
 #' @param n Number of time points
 #' @export
-myGetDkn <- function(k, n) {
-  
+myGetDkn <- function(k, n)
+{
+  library(Matrix)
+  # create D1n
+  if (k==1)
+  {
+    D1 = matrix(nrow = n-1, ncol = n)
+    zeros_matrix = rep(0, n)
+
+    for(i in 1:n-1)
+    {
+      D1[i,] = zeros_matrix
+      D1[i,i] = -1
+      D1[i, i+1] = 1
+    } # for
+    return(Matrix(D1, sparse = TRUE))
+  } # endif
+
+  return(myGetDkn(k=1, n=n - k + 1) %*% myGetDkn(k=k-1, n=n))
 }
 ```
 
@@ -285,6 +427,9 @@ myGetDkn <- function(k, n) {
 **Step 7:** Write functions 'fx_hp' and 'gradf_hp' to perform HP-filtering.
 
 ```{r, echo=TRUE}
+# These can be found in my hodrick_prescott.R file
+
+
 #' Objective Function for HP-filtering
 #' 
 #' @param y response
@@ -293,7 +438,7 @@ myGetDkn <- function(k, n) {
 #' @param lambda regularization parameter
 #' @export
 fx_hp <- function(y, theta, Dkn, lambda=0) {
-  
+  return(0.5 * sum((y-theta)^2) + (lambda/2) * sum((as.vector(Dkn %*% theta))^2) )
 }
 
 #' Gradient for HP-filtering
@@ -304,7 +449,7 @@ fx_hp <- function(y, theta, Dkn, lambda=0) {
 #' @param lambda regularization parameter
 #' @export
 gradf_hp <- function(y, theta, Dkn, lambda=0) {
-  
+  return(-y + theta + lambda * as.vector(crossprod(Dkn) %*% theta) )
 }
 ```
 
@@ -319,7 +464,50 @@ y <- sin(pi*x) + x + 0.5*rnorm(n)
 
 - Also plot the noisy data, as points, and smoothed estimates, as a line.
 
+**You can find my code for this and the following problems as well as helpful wrapper functions in `homework2/hp_filtering_driver.R`.**
+
+My step size is $1 / L = 0.002494379$, where $L$ is the Lipschitz constant calculated from the formal in question 2. You can find this calculate in `hodrick-prescott.R`.
+
+$$x_0  = 0$$
+
+```{r, out.width='50%', fig.align='center', echo=FALSE}
+knitr::include_graphics('img/x0_fixed_objective_change.png')
+knitr::include_graphics('img/x0_fixed_x_vs_y.png')
+```
+
+$$x_0= y$$
+
+
+```{r, out.width='50%', fig.align='center', echo=FALSE}
+knitr::include_graphics('img/xy_fixed_objective_change.png')
+knitr::include_graphics('img/xy_fixed_x_vs_y.png')
+```
+
+These are the shapes that we expect. As we descend closer and closer to the minimum, we will be making smaller relative changes (as the gradient gets smaller). Our smoothness lines look like they could fit the data better. Perhaps if we adjusted $\lambda$ and $k$ we would see better fit.
+
+
 **Step 9:** Perform HP-filtering (with $\lambda = 100$) on the simulated data above using backtracking. Try using $\V{0}$ and $\V{y}$ as initial values for $\V{\theta}$. Plot the difference $\ell(\V{\theta}_m) - \ell(\V{\theta}_{1000})$ versus the iteration $m$. Comment on the shape of the plot given what you know about the iteration complexity of gradient descent with backtracking.
+
+```{r, out.width='50%', fig.align='center', echo=FALSE}
+knitr::include_graphics('img/x0_backtracking_objective_change.png')
+knitr::include_graphics('img/xy_backtracking_objective_change.png')
+```
+
+With the backtracking we see a few inconsitent points at the beginning. This is where the algorithm is adjusting its step size. After that we see similar, consistent trends as in the fixed case. Notice that these each seem to converge in fewer iterations than for the fixed case.
+
 
 **Step 10:** Use your code above to smooth some interesting time series data. For example, you might use the tseries R package on CRAN (see the function **get.hist.quote**) to download historical financial data for the daily closing prices of Apple stock over the past two years. Try at least 3 different $\lambda$ values - different enough to generate noticably different smoothed estimates - and at least two differencing matrix orders, e.g. $\Mn{D}{2}$ and $\Mn{D}{3}$. For all six $\lambda$ and differencing matrices combinations, plot the noisy data, as points, and smoothed estimates, as a line.
 
+This is AAPL stock data from 2018-01-01 to 2020-01-01 taking at closing each day.
+
+
+```{r, out.width='50%', fig.align='center', echo=FALSE}
+knitr::include_graphics('img/apple_3_005.png')
+knitr::include_graphics('img/apple_3_05.png')
+knitr::include_graphics('img/apple_3_15.png')
+knitr::include_graphics('img/apple_5_005.png')
+knitr::include_graphics('img/apple_5_05.png')
+knitr::include_graphics('img/apple_5_15.png')
+```
+
+In both cases as we increase lambda the line gets smoother.
