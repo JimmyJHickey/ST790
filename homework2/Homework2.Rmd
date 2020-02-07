@@ -293,15 +293,16 @@ Your function should return the selected step-size.
 #' @param max_iter maximum number of iterations
 #' @param tol convergence tolerance
 #' @export
-gradient_descent_backtrack <- function(fx, gradf, x0, max_iter=1e2, tol=1e-3) {
-    # create vectors
+gradient_descent_backtrack <- function(fx, gradf, x0, max_iter=1e2, tol=1e-3)
+{
+  # create vectors
   objective_history = c()
   gradient_history = c()
   relative_objective_history = c()
   relative_iterate_history = c()
 
   # guess at step size
-  step_size = 1
+  default_step_size = 1
 
   # initialize variables
   current_iterate = x0
@@ -321,7 +322,7 @@ gradient_descent_backtrack <- function(fx, gradf, x0, max_iter=1e2, tol=1e-3) {
     gradient_history[i] = norm(gradient_value, '2')
 
     # Calculate step size using backtracking
-    step_size = backtrack(fx = fx, x = current_iterate, t = step_size, df = gradient_value, alpha = 0.5, beta = 0.9)
+    step_size = backtrack(fx = fx, x = current_iterate, t = default_step_size, df = gradient_value, alpha = 0.5, beta = 0.9)
 
     # Gradient step to get new objective iterate value
     new_iterate = gradient_step(gradient_value, current_iterate, step_size)
@@ -493,7 +494,7 @@ knitr::include_graphics('img/x0_backtracking_objective_change.png')
 knitr::include_graphics('img/xy_backtracking_objective_change.png')
 ```
 
-With the backtracking we see a few inconsitent points at the beginning. This is where the algorithm is adjusting its step size. After that we see similar, consistent trends as in the fixed case. Notice that these each seem to converge in fewer iterations than for the fixed case.
+With the backtracking we see a few inconsitent points at the beginning. This is where the algorithm is able to take advantage of larger step sizes. As we get closer to the minimum we see smaller changes. In these two examples the larger step sizes helped a lot, notice how much faster the backtracking converges.
 
 
 **Step 10:** Use your code above to smooth some interesting time series data. For example, you might use the tseries R package on CRAN (see the function **get.hist.quote**) to download historical financial data for the daily closing prices of Apple stock over the past two years. Try at least 3 different $\lambda$ values - different enough to generate noticably different smoothed estimates - and at least two differencing matrix orders, e.g. $\Mn{D}{2}$ and $\Mn{D}{3}$. For all six $\lambda$ and differencing matrices combinations, plot the noisy data, as points, and smoothed estimates, as a line.

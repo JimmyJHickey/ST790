@@ -117,7 +117,7 @@ gradient_descent_backtrack <- function(fx, gradf, x0, max_iter=1e2, tol=1e-3)
   relative_iterate_history = c()
 
   # guess at step size
-  step_size = 1
+  default_step_size = 1
 
   # initialize variables
   current_iterate = x0
@@ -137,7 +137,7 @@ gradient_descent_backtrack <- function(fx, gradf, x0, max_iter=1e2, tol=1e-3)
     gradient_history[i] = norm(gradient_value, '2')
 
     # Calculate step size using backtracking
-    step_size = backtrack(fx = fx, x = current_iterate, t = step_size, df = gradient_value, alpha = 0.5, beta = 0.9)
+    step_size = backtrack(fx = fx, x = current_iterate, t = default_step_size, df = gradient_value, alpha = 0.5, beta = 0.9)
 
     # Gradient step to get new objective iterate value
     new_iterate = gradient_step(gradient_value, current_iterate, step_size)
