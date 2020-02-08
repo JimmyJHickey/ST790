@@ -179,3 +179,7 @@ apple_plots(k = 5, lambda = 0.005)
 apple_plots(k = 5, lambda = 0.5)
 apple_plots(k = 5, lambda = 15)
 
+
+apple_plots(k = 2, lambda = 100)
+apple_plots(k = 3, lambda = 100)
+
