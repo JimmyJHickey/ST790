@@ -1,0 +1,251 @@
+---
+title: "Homework 3"
+author: "Jimmy Hickey"
+date: "Due @ 5pm on February 21, 2020"
+header-includes:
+  - \usepackage{bm}
+  - \newcommand{\Real}{\mathbb{R}}
+  - \newcommand{\dom}{{\bf dom}\,}
+  - \newcommand{\Tra}{^{\sf T}} % Transpose
+  - \newcommand{\Inv}{^{-1}} % Inverse
+  - \def\vec{\mathop{\rm vec}\nolimits}
+  - \newcommand{\diag}{\mathop{\rm diag}\nolimits}
+  - \newcommand{\tr}{\operatorname{tr}} % Trace
+  - \newcommand{\epi}{\operatorname{epi}} % epigraph
+  - \newcommand{\V}[1]{{\bm{\mathbf{\MakeLowercase{#1}}}}} % vector
+  - \newcommand{\VE}[2]{\MakeLowercase{#1}_{#2}} % vector element
+  - \newcommand{\Vn}[2]{\V{#1}^{(#2)}} % n-th vector
+  - \newcommand{\Vtilde}[1]{{\bm{\tilde \mathbf{\MakeLowercase{#1}}}}} % vector
+  - \newcommand{\Vhat}[1]{{\bm{\hat \mathbf{\MakeLowercase{#1}}}}} % vector
+  - \newcommand{\VtildeE}[2]{\tilde{\MakeLowercase{#1}}_{#2}} % vector element
+  - \newcommand{\M}[1]{{\bm{\mathbf{\MakeUppercase{#1}}}}} % matrix
+  - \newcommand{\ME}[2]{\MakeLowercase{#1}_{#2}} % matrix element
+  - \newcommand{\Mtilde}[1]{{\bm{\tilde \mathbf{\MakeUppercase{#1}}}}} % matrix
+  - \newcommand{\Mbar}[1]{{\bm{\bar \mathbf{\MakeUppercase{#1}}}}} % matrix
+  - \newcommand{\Mn}[2]{\M{#1}^{(#2)}} % n-th matrix
+output: pdf_document
+---
+
+**Part 1.** We will construct and analyze the convergence of an MM algorithm for fitting the smoothed least absolute deviations (LAD) regression. We first set some notation: $\V{x}_i \in \Real^p, y_i \in \Real$ for $i=1, \ldots, n$ and $\epsilon > 0$. Throughout Part 1, assume that $n > p$ and that the design $\M{X} \in \Real^{n\times p}$ is full rank. Recall the objective function in smoothed LAD regression is
+$$
+\ell(\V{\beta}) = \sum_{i=1}^n \sqrt{(y_i - \V{x}_i\Tra \V{\beta})^2 + \epsilon}.
+$$
+
+1. Prove that the function $f_\epsilon(u) = \sqrt{u + \epsilon}$ is concave on its domain $[0, \infty)$.
+
+2. Fix $\tilde{u} \in [0, \infty)$. Prove that
+$$
+g_\epsilon(u\mid \tilde{u}) = \sqrt{\tilde{u} + \epsilon} + \frac{u - \tilde{u}}{2\sqrt{\tilde{u} + \epsilon}}
+$$
+majorizes $f_\epsilon(u)$.
+
+Using the univariate majorization above enables us to construct a majorization of $\ell(\V{\beta})$, namely
+$$
+g(\V{\beta} \mid \Vtilde{\beta}) = \sum_{i=1}^n g_\epsilon(r_i(\V{\beta})^2 \mid r_i(\Vtilde{\beta})^2),
+$$
+where $r_i(\V{\beta}) = (y_i - \V{x}_i\Tra\V{\beta})$ is the $i$th residual.
+
+3. Derive the MM update, namely write an explicit formula for
+$$
+\V{\beta}^+ = \underset{\V{\beta}}{\arg\min}\; g(\V{\beta} \mid \Vtilde{\beta}).
+$$
+
+4. What is the computational complexity of computing the MM update?
+
+5. Prove that $\ell(\V{\beta})$ has a unique global minimum for all $\epsilon > 0$.
+
+6. Fix $\epsilon > 0$. Use the version of Meyer's monotone convergence theorem discussed in class to prove that the algorithm using the updates you derived in 3 converges to the unique global minimum of $\ell(\V{\beta})$.
+
+\newpage
+
+**Part 2.** MM algorithm for smooth LAD regression and Newton's method
+
+Please complete the following steps.
+
+**Step 1:** Write a function "smLAD" that implements the MM algorithm derived above for smooth LAD regression
+
+```{r, echo=TRUE}
+#' MM algorithm for smooth LAD regression
+#' 
+#' @param y response
+#' @param X design matrix
+#' @param beta Initial regression coefficient vector
+#' @param epsilon smoothing parameter
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+smLAD <- function(y,X,beta,epsilon=0.25,max_iter=1e2,tol=1e-3) {
+  
+}
+```
+Your function should return
+
+- The final iterate value
+- The objective function values
+- The relative change in the function values
+- The relative change in the iterate values
+
+**Step 2:** Apply smoothed LAD regression and least squares regression on the telephone data below. Plot the two fitted lines and data points.
+
+```{r, echo=TRUE}
+## Number of International Calls from Belgium,
+## taken from the Belgian Statistical Survey,
+## published by the Ministry of Economy,
+##
+## 73 subjects, 2 variables:
+##  Year(x[i])
+##  Number of Calls (y[i], in tens of millions)
+##
+## http://www.uni-koeln.de/themen/statistik/data/rousseeuw/
+## Datasets used in Robust Regression and Outlier Detection (Rousseeuw and Leroy, 1986).
+## Provided on-line at the University of Cologne.
+
+x <- c(50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68,
+  69, 70, 71, 72, 73)
+
+y <- c(0.44, 0.47, 0.47, 0.59, 0.66, 0.73, 0.81, 0.88, 1.06, 1.20, 1.35, 1.49, 1.61,
+  2.12, 11.90, 12.40, 14.20, 15.90, 18.20, 21.20, 4.30, 2.40, 2.70, 2.90)
+```
+
+**Step 3:** Plot the objective function values for smooth LAD evaluated at the MM iterate sequence, i.e. $\ell(\beta^{(k)})$ versus $k$.
+
+\newpage
+
+For the rest of Part 2, we will investigate the effect of using the Sherman-Morrison-Woodbury identity in improving the scalability of the Newton's method algorithm for ridge LAD regression in the case when $p > n$. We seek to minimize the following objective function
+$$
+\ell(\V{\beta}) = \sum_{i=1}^n \sqrt{(y_i - \V{x}_i\Tra \V{\beta})^2 + \epsilon} + \frac{\lambda}{2} \lVert \V{\beta} \rVert_2^2.
+$$
+Let $W(\V{\beta})$ be a $n \times n$ diagonal matrix that depends on $\V{\beta}$.
+
+**Step 4:** Write a function "newton_step_naive" that computes the solution $\Delta \V{\beta}_{\text{nt}}$ to the linear system
+$$
+(\lambda \M{I} + \M{X}\Tra \M{W}(\V{\beta})\M{X})\Delta \V{\beta}_{\text{nt}} = \nabla \ell(\V{\beta}).
+$$
+Use the **chol**, **backsolve**, and **forwardsolve** functions in the base package.
+
+```{r, echo=TRUE}
+#' Compute Newton Step (Naive) for logistic ridge regression
+#' 
+#' @param y response
+#' @param X Design matrix
+#' @param beta Current regression vector estimate
+#' @param g Gradient vector
+#' @param lambda Regularization parameter
+#' @param epsilon smoothing parameter
+newton_step_naive <- function(y, X, beta, g, lambda, epsilon=0.25) {
+  
+}
+```
+Your function should return the Newton step $\Delta \V{\beta}_{\text{nt}}$.
+
+**Step 5:** Write a function "newton_step_smw" that computes the Newton step using the Sherman-Morrison-Woodbury identity to reduce the computational complexity of computing the Newton step from $\mathcal{O}(p^3)$ to $\mathcal{O}(n^2p)$. This is a reduction when $n < p$.
+
+```{r, echo=TRUE}
+#' Compute Newton Step (Sherman-Morrison-Woodbury) for logistic ridge regression
+#' 
+#' @param y response
+#' @param X Design matrix
+#' @param beta Current regression vector estimate
+#' @param g Gradient vector
+#' @param lambda Regularization parameter
+#' @param epsilon smoothing parameter
+newton_step_smw <- function(y, X, beta, g, lambda, epsilon=0.25) {
+  
+}
+```
+Your function should return the Newton step $\Delta \V{\beta}_{\text{nt}}$.
+
+\newpage
+
+**Step 6** Write a function "backtrack_descent"
+
+```{r, echo=TRUE}
+#' Backtracking for steepest descent
+#' 
+#' @param fx handle to function that returns objective function values
+#' @param x current parameter estimate
+#' @param t current step-size
+#' @param df the value of the gradient of objective function evaluated at the current x
+#' @param d descent direction vector
+#' @param alpha the backtracking parameter
+#' @param beta the decrementing multiplier
+backtrack_descent <- function(fx, x, t, df, d, alpha=0.5, beta=0.9) {
+  
+}
+```
+Your function should return the selected step-size.
+
+
+**Step 7:** Write functions 'fx_lad' and 'gradf_lad' to compute the objective function and its derivative for ridge LAD regression.
+
+```{r, echo=TRUE}
+#' Objective Function for ridge LAD regression
+#' 
+#' @param y response
+#' @param X design matrix
+#' @param beta regression coefficient vector
+#' @param epsilon smoothing parameter
+#' @param lambda regularization parameter
+#' @export
+fx_lad <- function(y, X, beta, epsilon=0.25,lambda=0) {
+  
+}
+
+#' Gradient for ridge LAD regression
+#'
+#' @param y response
+#' @param X design matrix
+#' @param beta regression coefficient vector
+#' @param epsilon smoothing parameter
+#' @param lambda regularization parameter
+#' @export
+gradf_lad <- function(y, X, beta, epsilon=0.25, lambda=0) {
+  
+}
+```
+
+**Step 8:** Write the function "lad_newton" to estimate a ridge LAD regression model using damped Newton's method. Terminate the algorithm when half the square of the Newton decrement falls below the tolerance parameter
+
+```{r, echo=TRUE}
+#' Damped Newton's Method for Fitting Ridge LAD Regression
+#' 
+#' @param y response
+#' @param X Design matrix
+#' @param beta Initial regression coefficient vector
+#' @param epsilon smoothing parameter
+#' @param lambda regularization parameter
+#' @param naive Boolean variable; TRUE if using Cholesky on the Hessian
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+lad_newton <- function(y, X, beta, epsilon=0.25,lambda=0, naive=TRUE, max_iter=1e2, tol=1e-3) {
+  
+}
+```
+
+**Step 9:** Perform LAD ridge regression (with $\lambda = 10$) on the following 3 data examples $(y,X)$ using Newton's method and the naive Newton step calculation. Record the times for each using **system.time**.
+
+```{r, echo=TRUE}
+set.seed(12345)
+## Data set 1
+n <- 200
+p <- 300
+
+X1 <- matrix(rnorm(n*p),n,p)
+beta0 <- matrix(rnorm(p),p,1)
+y1 <- X1%*%beta0 + rnorm(n)
+
+## Data set 2
+p <- 600
+X2 <- matrix(rnorm(n*p),n,p)
+beta0 <- matrix(rnorm(p),p,1)
+y2 <- X2%*%beta0 + rnorm(n)
+
+## Data set 3
+p <- 1200
+X3 <- matrix(rnorm(n*p),n,p)
+beta0 <- matrix(rnorm(p),p,1)
+y3 <- X3%*%beta0 + rnorm(n)
+```
+
+**Step 10:** Perform LAD ridge regression (with $\lambda = 10$) on the above 3 data examples $(y,X)$ using Newton's method and the Newton step calculated using the  Sherman-Morrison-Woodbury identity. Record the times for each using **system.time**.
+
+**Step 11:** Plot all six run times against $p$. Comment on the how the two run-times scale with $p$ and compare it to what you know about the computational complexity for the two ways to compute the Newton update.
