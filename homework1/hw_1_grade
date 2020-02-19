@@ -1,0 +1,10 @@
+2) The complexity of A^{-1}b can be calculated as  (I + \alpha vv^T)b = b + \alpha v(v^T * b), where alpha = v^Tv. So, 
+i) v^T * b = O(n)
+ii) v(v^T * b) = O(n)
+iii) b + \alpha v(v^T * b) = O(n)
+
+So, the total cost is O(n)
+
+(- 3)
+
+Grade : 45/48
