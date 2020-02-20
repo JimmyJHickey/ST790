@@ -1,4 +1,11 @@
+###
+#
+# Jimmy Hickey
+#
+###
+
 library(jhickeyST790)
+library(ggplot2)
 
 ## Number of International Calls from Belgium,
 ## taken from the Belgian Statistical Survey,
@@ -22,8 +29,28 @@ x = as.matrix(x)
 
 beta0 = c(0.1)
 
-fx_lad(y, x, beta0, epsilon = 0.25)
+epsilon = 0.25
 
-gradf_lad(y, x, beta0, epsilon = 0.25)
+output_smLAD = smLAD(y=y, X=x, beta=beta0, epsilon=epsilon, max_iter=1e2, tol=1e-3)
 
-mm_update(y, x, beta0, epsilon = 0.25)
+telephone_output = data.frame(cbind(
+                                    "smooth" = x %*% output_smLAD$final_iterate,
+                                    "x" = x[,1],
+                                    "y" = y
+                                    ))
+
+plot(output_smLAD$objective_history)
+
+ggplot(telephone_output) +
+  geom_point(size=2, shape=23, aes(x = x, y = y)) +
+  geom_line(aes(x = x, y = V1))
+
+
+
+
+
+####
+# Newton
+###
+
+
