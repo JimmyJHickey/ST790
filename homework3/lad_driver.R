@@ -28,7 +28,6 @@ y <- c(0.44, 0.47, 0.47, 0.59, 0.66, 0.73, 0.81, 0.88, 1.06, 1.20, 1.35, 1.49, 1
 x = as.matrix(x)
 
 beta0 = c(0.1)
-
 epsilon = 0.25
 
 output_smLAD = smLAD(y=y, X=x, beta=beta0, epsilon=epsilon, max_iter=1e2, tol=1e-3)
@@ -46,9 +45,6 @@ ggplot(telephone_output) +
   geom_line(aes(x = x, y = V1))
 
 
-
-
-
 ####
 # Newton
 ###
@@ -64,17 +60,51 @@ y1 <- X1%*%beta0 + rnorm(n)
 lambda1 = 10
 epsilon1 = 0.25
 
-g1 = gradf_lad(y1, X1, beta0, epsilon=epsilon1, lambda= lambda1)
+naive1 = system.time(
+  lad_newton(y = y1,
+             X=X1,
+             beta = beta0,
+             epsilon=epsilon,
+             lambda=lambda,
+             naive=TRUE,
+             max_iter=1e2,
+             tol=1e-3))[[3]]
 
-naive = newton_step_naive(y1, X1, beta0, g = g1, epsilon = epsilon1, lambda = lambda1)
-smw = newton_step_smw(y1, X1, beta0, g = g1, epsilon = epsilon1, lambda = lambda1)
-
+smw1 = system.time(
+  lad_newton(y = y1,
+             X=X1,
+             beta = beta0,
+             epsilon=epsilon,
+             lambda=lambda,
+             naive=FALSE,
+             max_iter=1e2,
+             tol=1e-3))[[3]]
 
 ## Data set 2
 p <- 600
 X2 <- matrix(rnorm(n*p),n,p)
 beta0 <- matrix(rnorm(p),p,1)
 y2 <- X2%*%beta0 + rnorm(n)
+
+naive2 = system.time(
+  lad_newton(y = y2,
+             X=X2,
+             beta = beta0,
+             epsilon=epsilon,
+             lambda=lambda,
+             naive=TRUE,
+             max_iter=1e2,
+             tol=1e-3))[[3]]
+
+smw2 = system.time(
+  lad_newton(y = y2,
+             X=X2,
+             beta = beta0,
+             epsilon=epsilon,
+             lambda=lambda,
+             naive=FALSE,
+             max_iter=1e2,
+             tol=1e-3))[[3]]
 
 
 ## Data set 3
@@ -83,4 +113,38 @@ X3 <- matrix(rnorm(n*p),n,p)
 beta0 <- matrix(rnorm(p),p,1)
 y3 <- X3%*%beta0 + rnorm(n)
 
+naive3 = system.time(
+  lad_newton(y = y3,
+             X=X3,
+             beta = beta0,
+             epsilon=epsilon,
+             lambda=lambda,
+             naive=TRUE,
+             max_iter=1e2,
+             tol=1e-3))[[3]]
+
+smw3 = system.time(
+  lad_newton(y = y3,
+             X=X3,
+             beta = beta0,
+             epsilon=epsilon,
+             lambda=lambda,
+             naive=FALSE,
+             max_iter=1e2,
+             tol=1e-3))[[3]]
+
+
+timing = data.frame(
+    "naive" = rbind(naive1, naive2, naive3),
+    "smw" = rbind(smw1, smw2, smw3),
+    "p" = rbind(300, 600, 1200)
+)
+
+ggplot(timing) +
+  geom_line(aes(x = p, y = naive, color = "naive")) +
+  geom_line(aes(x = p, y = smw, color = "smw")) +
+  scale_color_manual(values=c("naive"="#FF0000", "smw"="#0000FF")) +
+  ylab("time (s)") +
+  xlab("number of columns") +
+  ggtitle("Comparison of naive and SMW Newton Method")
 
