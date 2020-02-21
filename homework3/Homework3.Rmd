@@ -210,7 +210,9 @@ We need to show 4 conditions.
 
 \newpage
 
-# You can find my code for part 2 `newtons_method.R` and `smoothed_lad.R`. You can find the driver functions in `/homework3/lad_driver.R`.
+# You can find my code for part 2 in `newtons_method.R` and `smoothed_lad.R`. You can find the driver code in `/homework3/lad_driver.R`.
+
+\newpage
 
 **Part 2.** MM algorithm for smooth LAD regression and Newton's method
 
@@ -265,6 +267,11 @@ y <- c(0.44, 0.47, 0.47, 0.59, 0.66, 0.73, 0.81, 0.88, 1.06, 1.20, 1.35, 1.49, 1
 ```
 
 **Step 3:** Plot the objective function values for smooth LAD evaluated at the MM iterate sequence, i.e. $\ell(\beta^{(k)})$ versus $k$.
+
+```{r, out.width='50%', fig.align='center', echo=FALSE}
+knitr::include_graphics('img/objective_history.png')
+knitr::include_graphics('img/smoothed_lad.png')
+```
 
 \newpage
 
@@ -407,3 +414,9 @@ y3 <- X3%*%beta0 + rnorm(n)
 **Step 10:** Perform LAD ridge regression (with $\lambda = 10$) on the above 3 data examples $(y,X)$ using Newton's method and the Newton step calculated using the  Sherman-Morrison-Woodbury identity. Record the times for each using **system.time**.
 
 **Step 11:** Plot all six run times against $p$. Comment on the how the two run-times scale with $p$ and compare it to what you know about the computational complexity for the two ways to compute the Newton update.
+
+```{r, out.width='50%', fig.align='center', echo=FALSE}
+knitr::include_graphics('img/naive_vs_smw.png')
+```
+
+This is actually the opposite behavior that I would expect to see. While both calculations take longer as $p$ increases, the naive performs far better and increases less drastically than the SMW.
