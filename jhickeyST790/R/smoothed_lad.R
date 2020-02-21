@@ -7,12 +7,10 @@
 #' @param lambda regularization parameter
 #' @export
 fx_lad <- function(y, X, beta, epsilon=0.25,lambda=0) {
-  objective = 0
+  residual = (y - X %*% beta)^2
+  objective = sum( sqrt(residual + epsilon)) + lambda/2 * norm(beta, '2')^2
 
-  for(i in 1:nrow(X))
-    objective = objective + sqrt( (y[i] - t(X[i,]) %*% beta)^2 + epsilon)  + (lambda / 2) * norm(beta,'2')^2
-
-  return(as.numeric(objective))
+  return(objective)
 }
 
 
@@ -25,13 +23,15 @@ fx_lad <- function(y, X, beta, epsilon=0.25,lambda=0) {
 #' @param lambda regularization parameter
 #' @export
 gradf_lad <- function(y, X, beta, epsilon=0.25, lambda=0) {
-  gradient = 0
+  residual = (y - X %*% beta)^2
+  sum_diag = diag( as.vector(1 / sqrt(residual + epsilon) ) )
+  numerator = ( X %*% beta - y)
 
-  for(i in 1:nrow(X))
-    gradient = gradient + ( (y[i] - t(X[i,]) %*% beta)^2 + epsilon)^(-1/2) * (y[i]- t(X[i,]) %*% beta) %*% -X[i,] + lambda * norm(beta,'2')
+  gradient = t(X) %*% sum_diag %*% numerator + lambda * beta
 
   return(gradient)
 }
+
 
 #' MM update for LAD regression
 #'
