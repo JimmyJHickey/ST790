@@ -210,9 +210,15 @@ We need to show 4 conditions.
 
 \newpage
 
+# You can find my code for part 2 `newtons_method.R` and `smoothed_lad.R`. You can find the driver functions in `/homework3/lad_driver.R`.
+
 **Part 2.** MM algorithm for smooth LAD regression and Newton's method
 
 Please complete the following steps.
+
+
+
+
 
 **Step 1:** Write a function "smLAD" that implements the MM algorithm derived above for smooth LAD regression
 
