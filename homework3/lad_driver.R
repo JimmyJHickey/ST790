@@ -53,4 +53,34 @@ ggplot(telephone_output) +
 # Newton
 ###
 
+set.seed(12345)
+
+## Data set 1
+n <- 200
+p <- 300
+X1 <- matrix(rnorm(n*p),n,p)
+beta0 <- matrix(rnorm(p),p,1)
+y1 <- X1%*%beta0 + rnorm(n)
+lambda1 = 10
+epsilon1 = 0.25
+
+g1 = gradf_lad(y1, X1, beta0, epsilon=epsilon1, lambda= lambda1)
+
+naive = newton_step_naive(y1, X1, beta0, g = g1, epsilon = epsilon1, lambda = lambda1)
+smw = newton_step_smw(y1, X1, beta0, g = g1, epsilon = epsilon1, lambda = lambda1)
+
+
+## Data set 2
+p <- 600
+X2 <- matrix(rnorm(n*p),n,p)
+beta0 <- matrix(rnorm(p),p,1)
+y2 <- X2%*%beta0 + rnorm(n)
+
+
+## Data set 3
+p <- 1200
+X3 <- matrix(rnorm(n*p),n,p)
+beta0 <- matrix(rnorm(p),p,1)
+y3 <- X3%*%beta0 + rnorm(n)
+
 
