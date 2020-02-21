@@ -45,7 +45,7 @@ newton_step_smw <- function(y, X, beta, g, lambda, epsilon=0.25) {
   # C
   id_p = diag(1, nrow(X))
 
-  inv = lambda_diag - lambda_diag %*% X_wBeta_sqrt %*% solve(id_p + t(X_wBeta_sqrt) %*% lambda_diag %*% X_wBeta_sqrt) %*% t(X_wBeta_sqrt) %*% lambda_diag
+  inv = lambda_diag - (1/lambda^2) * X_wBeta_sqrt %*% solve(id_p + 1/lambda * t(X_wBeta_sqrt) %*% X_wBeta_sqrt) %*% t(X_wBeta_sqrt)
 
 
   delta_beta_nt = -inv %*% g
@@ -72,3 +72,6 @@ backtrack_descent <- function(fx, x, t, df, d, alpha=0.5, beta=0.9) {
 
   return(tk)
 }
+
+
+
