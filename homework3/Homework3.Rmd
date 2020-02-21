@@ -31,7 +31,21 @@ $$
 \ell(\V{\beta}) = \sum_{i=1}^n \sqrt{(y_i - \V{x}_i\Tra \V{\beta})^2 + \epsilon}.
 $$
 
+## 1
+
 1. Prove that the function $f_\epsilon(u) = \sqrt{u + \epsilon}$ is concave on its domain $[0, \infty)$.
+
+We can prove this by showing that $-f$ is convex. Take $\lambda \in [0,1]$ and arbitrary $x$ and $y$. Then,
+
+\begin{align*}
+	-f(\lambda x + (1 - \lambda) y) & = - \sqrt{\lambda x + (1 - \lambda)y + \varepsilon} \\
+	  & = - \sqrt{ \lambda x + (1- \lambda)y + \lambda \varepsilon + (1 - \lambda) \varepsilon } \\
+	  & \leq - \sqrt{  \lambda x + \lambda \varepsilon } - \sqrt{ (1 - \lambda) y + (1 - \lambda) \varepsilon  } & \text{triangle inequality} \\
+	  & = -\sqrt{ \lambda } \sqrt{ x + \varepsilon } - \sqrt{ 1 - \lambda  } \sqrt{y + \varepsilon } \\
+	  & \leq - \lambda \sqrt{ x + \varepsilon} - (1- \lambda) \sqrt{ y + \varepsilon  } & \lambda < 1
+\end{align*}
+
+## 2
 
 2. Fix $\tilde{u} \in [0, \infty)$. Prove that
 $$
@@ -45,16 +59,154 @@ g(\V{\beta} \mid \Vtilde{\beta}) = \sum_{i=1}^n g_\epsilon(r_i(\V{\beta})^2 \mid
 $$
 where $r_i(\V{\beta}) = (y_i - \V{x}_i\Tra\V{\beta})$ is the $i$th residual.
 
+
+\begin{align*}
+		g_\varepsilon(\theta | \tilde \theta) & = \sqrt{ \tilde \theta + \varepsilon} + \frac{  \theta - \tilde \theta}{  2 \sqrt{ \tilde \theta + \varepsilon  }} \\
+		  & = \frac{  2 \tilde \theta + 2 \varepsilon + \theta - \tilde \theta}{ 2 \sqrt{ \tilde \theta + \varepsilon  }  } \\
+		  & = \frac{  2 \varepsilon + \tilde \theta + \theta}{ 2 \sqrt{ \tilde \theta + \varepsilon  } } \\
+		  & = \frac{  (\theta + \varepsilon) + (\tilde \theta + \varepsilon)}{ 2 \sqrt{ \tilde \theta + \varepsilon  } } \\
+		  & = \frac{  (\theta + \varepsilon) }{ 2 \sqrt{ \tilde \theta + \varepsilon  } } + \frac{   (\tilde \theta + \varepsilon)}{ 2 \sqrt{ \tilde \theta + \varepsilon  } } \\
+		  & \geq \frac{(\theta + \varepsilon) }{ 2 \sqrt{ \tilde \theta + \varepsilon  } } \\
+		  & \geq \sqrt{ \theta+ \varepsilon  } \\
+		  & \geq f(\theta)
+\end{align*}
+
+
+We want to minimize
+
+$$
+\sqrt{\tilde u + \varepsilon   } + \frac{ u - \tilde u }{ 2 \sqrt{\tilde u + \varepsilon  }  } - \sqrt{ u + \varepsilon  } \geq 0.
+$$
+
+So, we'll take the derivative and set it equal to 0
+
+\begin{align*}
+	\frac{ \partial }{ \partial u } = 0 & = \frac{ 1 }{2  \sqrt{ \tilde u + \varepsilon  }} - \frac{ 1 }{2  \sqrt{  u + \varepsilon  }} \\
+	\tilde u & = u.
+\end{align*}
+
+
+And then we will check that it's second derivative is positive (to ensure that it is a minimum).
+
+
+$$
+	\frac{ \partial ^2 }{ \partial u^2  } = \frac{ 1 }{ 4 (\varepsilon + u )^{3/2} }
+$$
+
+
+Thus,
+
+$$
+g(\tilde \theta | \tilde \theta) - f(\tilde \theta) = 0.
+$$
+
+
+## 3
+
 3. Derive the MM update, namely write an explicit formula for
 $$
 \V{\beta}^+ = \underset{\V{\beta}}{\arg\min}\; g(\V{\beta} \mid \Vtilde{\beta}).
 $$
 
+We are looking to minimize
+
+$$
+\arg \min _{\beta} \sum_{i=1}^{n} \sqrt{r_i(\tilde \beta)^2 + \varepsilon } - \frac{r_i(\tilde \beta )^2  }{ 2 \sqrt{ r_i(\tilde \beta) + \varepsilon } } - \frac{  (y_i - X_i^T \beta)^2}{ 2 \sqrt{r_i(\tilde \beta)^2 + \varepsilon  } }.
+$$
+
+We can rewrite this as
+
+$$
+\frac{1  }{2  } \sum \tilde w_i (y_i - x_i^T \beta)^2.
+$$
+
+We can take the derivative elementwise and then recombine it.
+
+$$
+\frac{\partial  }{\partial \beta_j  }g(\beta | \tilde \beta) = \sum_i \tilde w_i x_{ij} (x_i^T \beta - y_i).
+$$
+
+Recall that 
+
+$$
+z_j = \sum_i \gamma_i x_{ij} \Rightarrow X^T \Gamma.
+$$
+
+Then the deriviative has the following form and we can set it equal to 0.
+
+$$
+X^T \tilde W (X \beta - Y)  = X^T \widetilde W X \beta - X^T \widetilde W Y = 0
+$$
+Where $\widetilde W$ is a diagonal matrix. So we need to solve.
+
+$$
+X^T \widetilde W X \beta = X^T \widetilde W Y
+$$
+
+## 4
+
 4. What is the computational complexity of computing the MM update?
+
+
+Since we cannot assume any special structure, this will take $\mathcal{O}( p^3 )$ because we have to invert. However the matrix multiplication $X^T \widetilde W X$ will take $\mathcal{O}( np^2 )$, so the overall complexity will be which of these two is bigger (depending on $n$ and $p$).
+
+## 5
 
 5. Prove that $\ell(\V{\beta})$ has a unique global minimum for all $\epsilon > 0$.
 
+To show that we have a unique global minimum, we must show coercivity and strong convexity. 
+
+
+We will start with coercivity. We can see that as $\beta \rightarrow \infty$
+
+$$
+\sum \sqrt{ (y_i - x_i^T \beta)^2 + \varepsilon  } 
+\rightarrow \infty
+$$
+
+because the $x_i^T - \beta$ term is squared.
+
+We can show strong convexity by showing
+
+$$
+\ell (\beta) - \frac{ m }{  2} || \beta ||_2^2.
+$$
+
+We can start by taking elementwise derivatives.
+
+
+\begin{align*}
+		\frac{ \partial \ell  }{ \partial \beta_j  } & = \sum \frac{ 1 }{ 2 }((y_i -x_i^T \beta)^2 + \varepsilon )^{-1/2} \cdot 2(y_i - x_i^T \beta) \cdot - x_{ij} \\
+		& = \sum (r_i(\beta)^2 + \varepsilon )^{-1/2}(r_i(\beta)) x_{ij}
+\end{align*}
+
+
+We can then take the second derivative.
+
+\begin{align*}
+	\frac{ \partial^2 \ell}{ \partial \beta \partial \beta^T } & = \sum \frac{ \partial }{ \partial \beta^T } (r_i(\beta)^2 + \varepsilon )^{-1/2}(r_i(\beta)) x_{ij} \\
+  	& = \sum \frac{\varepsilon x_i  }{ (r_i(\beta)^2 + \varepsilon)^{3/2}} \frac{  \partial }{ \partial \beta^T } r_i(\beta) \\
+  	& = \sum \frac{\varepsilon x_i x_i^T }{ (r_i(\beta)^2 + \varepsilon)^{3/2}} 
+\end{align*}
+
+
+This is $X^T D X$ where $D$ is a diagonal matrix. Since $X$ is also full column rank, we have a full row rank matrix times a diagonal matrix times a full column rank matrix, which will net us a positive definite matrix.
+
+Since we know that the second derivative is positive definite, we know that $\nabla^2 \ell(\beta)$ has positive singular values. So we can take the smallest one to be our $m$. Thus, we have strong convexity and coercivity, so we have a unique global minimum. 
+
+## 6
+
 6. Fix $\epsilon > 0$. Use the version of Meyer's monotone convergence theorem discussed in class to prove that the algorithm using the updates you derived in 3 converges to the unique global minimum of $\ell(\V{\beta})$.
+
+We need to show 4 conditions.
+
+1. $\ell$ is continuous. We can see this from the function and we have taken derivatives, showing that it is differentiable.
+
+2. The MM update is continuous.
+
+3. We showed this is part 2.
+
+4. Since our function is strongly convex and smooth, we know that the sublevel sets are compact.
 
 \newpage
 
