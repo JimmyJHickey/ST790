@@ -106,3 +106,40 @@ smLAD <- function(y, X, beta, epsilon=0.25, max_iter=1e2, tol=1e-3) {
 
   return(return_list)
 }
+
+
+#' Damped Newton's Method for Fitting Ridge LAD Regression
+#'
+#' @param y response
+#' @param X Design matrix
+#' @param beta Initial regression coefficient vector
+#' @param epsilon smoothing parameter
+#' @param lambda regularization parameter
+#' @param naive Boolean variable; TRUE if using Cholesky on the Hessian
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+lad_newton <- function(y, X, beta, epsilon=0.25,lambda=0, naive=TRUE, max_iter=1e2, tol=1e-3) {
+
+  newton = if(naive) newton_step_naive else newton_step_smw
+  fx_lad_wrapper = function(in_beta) { fx_lad(y=y, X=X, beta=in_beta, epsilon = epsilon, lambda = lambda  ) }
+  current_beta = beta
+  t0 = 1
+
+  for (i in 1:max_iter)
+  {
+    gradient = gradf_lad(y = y, X = X, beta = current_beta, epsilon = epsilon, lambda = lambda)
+
+    newton_step = newton(y = y, X = X, beta = current_beta, g = gradient, epsilon = epsilon, lambda = lambda)
+    lambda_condition = t(gradient) %*% newton_step
+
+    if(lambda_condition^2/2 <= epsilon)
+        break
+
+    step_size = backtrack_descent(fx=fx_lad_wrapper, x=current_beta, t=t0, df=gradient, d=newton_step, alpha=0.5, beta=0.9)
+
+    current_beta = current_beta + step_size * newton_step
+  }
+
+  return(current_beta)
+
+}

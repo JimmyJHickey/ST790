@@ -52,3 +52,23 @@ newton_step_smw <- function(y, X, beta, g, lambda, epsilon=0.25) {
 
   return(delta_beta_nt)
 }
+
+
+#' Backtracking for steepest descent
+#'
+#' @param fx handle to function that returns objective function values
+#' @param x current parameter estimate
+#' @param t current step-size
+#' @param df the value of the gradient of objective function evaluated at the current x
+#' @param d descent direction vector
+#' @param alpha the backtracking parameter
+#' @param beta the decrementing multiplier
+backtrack_descent <- function(fx, x, t, df, d, alpha=0.5, beta=0.9) {
+
+  tk = t
+
+  while(fx(x + tk * d) >= fx(x) + alpha * tk * t(df) %*% d && tk > 1e-10)
+    tk = beta * tk
+
+  return(tk)
+}
