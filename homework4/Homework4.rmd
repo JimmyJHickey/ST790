@@ -1,6 +1,6 @@
 ---
 title: "Homework 4"
-author: "Your Name"
+author: "Jimmy Hickey"
 date: "Due @ 5pm on March 6, 2020"
 header-includes:
   - \usepackage{bm}
@@ -28,7 +28,12 @@ header-includes:
 output: pdf_document
 ---
 
+# 1
+
 **Part 1.** In this homework, you will practice writing equivalent optimization problems.
+
+
+## 1
 
 **1.** Inpainting
 
@@ -61,6 +66,8 @@ where $P_\Omega \in \{0,1\}^{\lvert \Omega \rvert \times mn}$ is a matrix that m
 
 \newpage
 
+## 2
+
 **2.** $\ell_1$-Trend Filtering
 
 Let $\V{y} \in \Real^n$ be a noisy time series signal that we wish to smooth. Let $\M{D}^{(1)}_n$ denote the $(n-1)\times n$ first-order differencing matrix. Note that the second-order differencing matrix $\M{D}^{(2)}_{n-1}$ can be written as the product of two first-order differencing matrices: $\Mn{D}{2}_{n-1} = \Mn{D}{1}_{n-1}\Mn{D}{1}_{n}$. More generally, the $k$th order differencing matrix $\Mn{D}{k}_{n-k+1}$ can be writen as the product of a first-order differencing matrix and a $k-1$th order differencing matrix: $\Mn{D}{k}_{n-k+1} = \Mn{D}{1}_{n-k+1}\Mn{D}{k-1}_{n-k+2}$. In $\ell_1$ trend filtering, we obtain a smoothed estimate $\V{\theta}$ of $\V{y}$ by solving the following quadratic program
@@ -72,7 +79,42 @@ where $\lambda \geq 0$ is a regularization parameter that trades off data fit wi
 
 **(a)** Formulate the $\ell_1$ trend filtering problem as a quadratic program.
 
+
+
+\begin{align*}
+\underbrace{
+\begin{bmatrix}
+	-I & 0 & 0 & 0 & 0 \\
+	0 & -I & 0 & 0 & 0 \\
+	0 & 0 & -I & 0 & 0 \\
+	0 & 0 & 0 & -I & 0 \\
+	0 & 0 & 0 & 0 & -I \\
+\end{bmatrix}
+}_{G}
+\underbrace{
+\begin{bmatrix}
+  \lambda \\
+  \theta_+ \\
+  \theta_- \\
+  \Delta_+ \\
+  \Delta_-
+\end{bmatrix}
+}_{x}
+\leq
+\underbrace{
+\begin{bmatrix}
+  0 \\
+  0 \\
+  0 \\
+  0 \\
+  0 \\
+\end{bmatrix}
+}_{h}
+\end{align*}
+
 \newpage
+
+# 2
 
 **Part 2.** Use R Gurobi to solve the convex programs you formulated in Part 1.
 
