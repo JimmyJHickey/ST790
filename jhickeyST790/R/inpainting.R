@@ -104,8 +104,6 @@ myInpaint <- function(Y) {
                            cbind(zero_drow_mn, neg_Idrow, zero_drow_drow),
                            cbind(zero_drow_mn, zero_drow_drow, neg_Idrow)
                            )
- cat(dim(inequality_constraints))
-
 
  gurobi_model = list()
 
@@ -122,6 +120,8 @@ myInpaint <- function(Y) {
                         rep('<=', length(zero_vec_drow)))
 
  params <- list(OutputFlag=0)
+
+ cat(length(gurobi_model$rhs))
 
  result <- gurobi(gurobi_model, params)
 
