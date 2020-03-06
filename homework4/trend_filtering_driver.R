@@ -37,6 +37,9 @@ apple_plots = function(k, lambda)
  }
 
 apple_plots(k = 3, lambda = 0.5)
-apple_plots(k = 10, lambda = 10)
 apple_plots(k = 3, lambda = 10)
+apple_plots(k = 3, lambda = 15)
 
+apple_plots(k = 7, lambda = 0.5)
+apple_plots(k = 7, lambda = 10)
+apple_plots(k = 7, lambda = 15)
