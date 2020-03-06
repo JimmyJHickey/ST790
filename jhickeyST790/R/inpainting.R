@@ -9,16 +9,6 @@ sparseDiag = function(n, diag)
 }
 
 
-#' Create an m x n sparse 0  matrix
-#'
-#' @param nrow number of rows
-#' @param ncol number of columns
-#' @export?
-sparseZero = function(nrow, ncol)
-{
- return(bandSparse(nrow, ncol, 0, as.matrix(rep(0,nrow))))
-}
-
 #' Compute the inpainting differencing matrix
 #'
 #' @param m number of rows
@@ -85,10 +75,11 @@ myInpaint <- function(Y) {
  one_vec_drow =  rep(1, Dhat_nrow)
 
 
- zero_p_drow = sparseZero(nrow(p_omega), Dhat_nrow)
- zero_mn_drow = sparseZero(mn, Dhat_nrow)
- zero_drow_mn = sparseZero(Dhat_nrow, mn)
- zero_drow_drow = sparseZero(Dhat_nrow, Dhat_nrow)
+ zero_p_drow = Matrix(0, nrow=nrow(p_omega), ncol = Dhat_nrow, sparse=TRUE)
+ zero_mn_drow = Matrix(0, nrow=mn, ncol = Dhat_nrow, sparse=TRUE)
+ zero_drow_mn =  Matrix(0, nrow=Dhat_nrow, ncol = mn, sparse=TRUE)
+ zero_drow_drow = Matrix(0, nrow=Dhat_nrow, ncol = Dhat_nrow, sparse=TRUE)
+
 
  zero_vec_mn = rep(0, mn)
  zero_vec_drow = rep(0, Dhat_nrow)
@@ -120,8 +111,6 @@ myInpaint <- function(Y) {
                         rep('<=', length(zero_vec_drow)))
 
  params <- list(OutputFlag=0)
-
- cat(length(gurobi_model$rhs))
 
  result <- gurobi(gurobi_model, params)
 
