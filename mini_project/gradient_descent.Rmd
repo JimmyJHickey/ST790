@@ -4,8 +4,9 @@ author: "Jimmy Hickey"
 date: "2020-03-31"
 output: 
  html_document:
-  theme: darkly
-  highlight: espresso
+  css: css/main.css
+  theme: flatly
+  highlight: tango
   toc: true
   toc_float:
    collapsed: true
@@ -17,9 +18,10 @@ output:
   keep_md: true
 ---
 
-# READ THIS
++++
 
-https://bookdown.org/yihui/rmarkdown/html-document.html
+
+
 
 
 ```{r, echo=TRUE}
@@ -30,9 +32,7 @@ https://bookdown.org/yihui/rmarkdown/html-document.html
 ## 73 subjects, 2 variables:
 ##  Year(x[i])
 ##  Number of Calls (y[i], in tens of millions)
-##
-## http://www.uni-koeln.de/themen/statistik/data/rousseeuw/
-## Datasets used in Robust Regression and Outlier Detection (Rousseeuw and Leroy, 1986).
+
 ## Provided on-line at the University of Cologne.
 
 x <- c(50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68,

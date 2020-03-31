@@ -1,0 +1,8 @@
+h1, .tocify-header{
+  text-indent: 0px;
+  color: red;
+}
+
+h2, .tocify-subheader{
+  color: black;
+}
