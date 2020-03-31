@@ -18,10 +18,6 @@ output:
   keep_md: true
 ---
 
-+++
-
-
-
 
 
 
@@ -51,10 +47,50 @@ y <- c(0.44, 0.47, 0.47, 0.59, 0.66, 0.73, 0.81, 0.88, 1.06, 1.20, 1.35, 1.49, 1
 
 ## Formulate problem
 
+4 - 4
+
 ## Derivation
+4-20
+
+
+### step size
+
+#### Lipschitz 
+5-5,7
+
+
+#### Choosing a step size
+
+#### effect of step size
+4 -21,22,23
+effect of step size
+
+
+##### backtracking line search
+5 -12, 13, 14
+backtracking line search
+
+
+
+
+
 
 
 ## Why Gradient Descent?
+
+4 - 5
+
+
+### Progress each step
+
+5-10
+ one step
+ 
+ 5-11
+ k steps
+
+### Computational Efficieny
+5-9
 
 # Examples + Code
 
@@ -62,7 +98,9 @@ y <- c(0.44, 0.47, 0.47, 0.59, 0.66, 0.73, 0.81, 0.88, 1.06, 1.20, 1.35, 1.49, 1
 ## Quick example from homework
 
 
-## Strongly Convex function
+## Apply to Strongly Convex function
+
+5 - 17
 
 "Maybe some numerical experiments illustrating the convergence properties of applying gradient descent on a strongly convex function."
 
@@ -70,6 +108,10 @@ y <- c(0.44, 0.47, 0.47, 0.59, 0.66, 0.73, 0.81, 0.88, 1.06, 1.20, 1.35, 1.49, 1
 # When it doesn't work / setbacks
 
 ## Issues with gradient descent
+
+4 - 6
+
+
 
 ## Function it doesn't apply to / violates assumptions
 
