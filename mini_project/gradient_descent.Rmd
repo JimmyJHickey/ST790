@@ -2,7 +2,12 @@
 title: "Gradient Descent"
 author: "Jimmy Hickey"
 date: "2020-03-31"
-output: 
+header-includes:
+  - \newcommand{\norm}[1]{\left\lVert#1\right\rVert} % norm
+  - \usepackage{amsmath}
+  - \DeclareMathOperator*{\argmax}{arg\,max}
+  - \DeclareMathOperator*{\argmin}{arg\,min}
+output:
  html_document:
   css: css/main.css
   theme: flatly
@@ -19,77 +24,370 @@ output:
 ---
 
 
-
-```{r, echo=TRUE}
-## Number of International Calls from Belgium,
-## taken from the Belgian Statistical Survey,
-## published by the Ministry of Economy,
-##
-## 73 subjects, 2 variables:
-##  Year(x[i])
-##  Number of Calls (y[i], in tens of millions)
-
-## Provided on-line at the University of Cologne.
-
-x <- c(50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68,
-  69, 70, 71, 72, 73)
-
-y <- c(0.44, 0.47, 0.47, 0.59, 0.66, 0.73, 0.81, 0.88, 1.06, 1.20, 1.35, 1.49, 1.61,
-  2.12, 11.90, 12.40, 14.20, 15.90, 18.20, 21.20, 4.30, 2.40, 2.70, 2.90)
-```
-
 # What is Gradient Descent?
 
-
-
 ## Exposition
+Imagine for a moment this very realistic scenario. You are a secret agent returning from a mission abroad retrieving some stolen hard drives containing many national secrets and one particularly good chili recipe that nobody remembered to save to the cloud. You are on your way to the airport in an UberPool (the government isn't made of money, you know) when all of a sudden your car takes a sudden left turn and the passenger next to you knocks you out. You awake on the side of a hill surrounding a valley. You get a brief glimpse of a truck at the bottom of the valley and people unloading what look like bags of tomatoes and onions; but then you are abruptly blindfolded and spun around, losing your sense of direction. How do you get to the bottom to retrieve the drives, beat the bad guys, and enjoy a well-earned hearty meal?
 
-## Formulate problem
+![](img/exposition_secret_agent.jpg)
 
-4 - 4
+This is an optimization problem. In general, you have a function and you want to find the optimal value, which can be either a maximum or a minimum value. In our example, the function would be the mountain that you need to traverse to get there and the optimal point would be the bottom. This is the minimum value of the function.
+
+Gradient descent is an algorithm to find optimal values of a function. It works by finding the direction of the gradient (the direction in which the function increases the most) at a given point and then taking a step in the opposite direction. This process is performed repeatedly until an optimal value is found. 
+
+So, your goal is to find the minimum (bottom) of the function (mountain). After remembering reading this handy blog post, you decide to employ gradient descent to get you there. You step around and find the direction that is going the most _uphill_. Then you take a step in the opposite direction of that. Then you repeat until you have reached the bottom of the valley where you can complete your mission. 
+
+## Formulating the Problem
+Let's be a bit more mathematically rigorous. Call the function we are optimizing over $f(x)$ and the point that we started at $\theta_0$. At our next point $\theta_1$, we want to take a step away from the gradient of our original point $\theta_0$. 
+
+$$
+\theta_1 = \theta_0 - \alpha \nabla f(\theta_0)
+$$
+
+Here $\alpha$ is the step size. This is a positive multiplier that determines how much of the gradient will be used in updating $\theta$. The choice in step size can play a large role in finding your minimum; we will cover this more later. We then repeat this process and continue to update $\theta_k$. In general,
+
+$$
+\theta_{k+1} = \theta_k - \alpha \nabla f(\theta_i)
+$$
+
+We want to continue this process until we find the minimum point, $\theta^*$. We will know that we have found this point when our gradient vanishes, as there is no slope at a minimum.
+
+$$
+\nabla f(\theta^*) = 0
+$$
+
+A nice property of gradient descent is that once we find a minimum, our function will stay there. If $\theta_n = \theta^*$,
+
+$$
+\theta_{n+1} = \theta_n + \nabla f(\theta_n) = \theta_n + 0 = \theta_n =\theta^*.
+$$
 
 ## Derivation
-4-20
+### Taylor's Theorem
+
+Gradient Descent comes from Taylor's theorem. Let's approximate $\theta$ close to $\widetilde \theta$. Again, $\alpha$ will be our step size.
+
+$$
+f(\theta | \widetilde \theta) \approx f(\widetilde \theta) + \nabla f(\widetilde \theta)^T (\theta - \widetilde \theta) + \frac{ 1 }{ 2\alpha } \norm{\theta - \widetilde  \theta}^2
+$$
 
 
-### step size
+Since we are looking for the $\theta$ that optimizes $f$, we will take the derivative of this with respect to $\theta$ and set it equal to 0.
 
-#### Lipschitz 
-5-5,7
+\begin{align*}
+	\frac{ d f }{  d\theta} & \approx 0 + \nabla f(\widetilde \theta)^T \theta + 0 + \frac{  1}{ 2 \alpha }\cdot 2 \cdot (  \theta - \widetilde \theta) \\ \\
+	0 & = \nabla f(\widetilde \theta)^T \theta + \frac{  1}{ \alpha }  (  \theta - \widetilde \theta)
+\end{align*}
 
+$$
+\theta= \widetilde \theta - \alpha \nabla f(\widetilde \theta)
+$$
 
-#### Choosing a step size
+This is the same update rule that we formulated above.
 
-#### effect of step size
-4 -21,22,23
-effect of step size
+### Step Size
+#### Effect of Step Size
+Let's look at the effect of choosing a step size with an example. We will use the familiar function $f(x) = x^2$ as our objective. Thus, its gradient is $\nabla f(x) = 2 x$. We will also choose a starting point, say $x = 2.5$. This gives $f(2.5) = 6.25$ as our starting value. Looking at the picture and through calculus, we know that the optimal point is at $x=0$ where $f(x)$ achieves its minimum value of 0.
 
+``` {r, echo=TRUE, warning=FALSE}
+library(ggplot2)
 
-##### backtracking line search
-5 -12, 13, 14
-backtracking line search
+# look at x in [-5, 5]
+x = seq(-5,5,0.01)
 
+# initial x value
+x0 = 2.5
 
+# square objective function
+square = function(x)
+{
+ return(x^2)
+}
 
+# Data frame of x^2 function
+fx = data.frame(x = x, xsq = square(x))
 
+# Data frame of the initial point (x0, f(x0))
+initial_point = data.frame( x = x0, xsq = square(x0))
 
+plot = ggplot() +
+ geom_line(data = fx, aes(x, xsq)) +
+ geom_point(data = initial_point, aes(x, xsq, fill="initial"),
+            size = 6) +
+  scale_fill_manual(name = '', 
+         values =c('initial'='#000000'), 
+         labels = c('initial')) + 
+ ylab('x^2') +
+ xlab('x')
 
+plot
+```
 
-## Why Gradient Descent?
+Now, let's try taking a gradient step with two different step sizes. Take $\alpha_1 = 1.03$ and $\alpha_2 = 0.1$. Let's work out what we would expect the next iterate to be with each step size.
 
-4 - 5
+\begin{align*}
+	x_{1,1} & = x_0 - \alpha_1 \nabla f(x_0) \\
+	 & = 2.5  - 1.03 \cdot 2 \cdot 2.5 \\
+	 & = -2.65	\\
+f(-2.65) & = 7.0225 \\ \\
+ x_{1,2} & = x_0 - \alpha_2 \nabla f(x_0) \\
+	 & = 2.5  - 0.1 \cdot 2 \cdot 2.5 \\
+	 & = 2 \\
+f(2) = 4
+\end{align*}
 
+We can repeat this process for 10 iterations and view the results.
 
-### Progress each step
+``` {r, echo=TRUE, warning=FALSE, message=FALSE}
+library(plotly)
 
-5-10
- one step
+# 2x is our gradient of x^2
+gradient = function(x)
+{
+ return(2*x)
+}
+
+# Find new iterate via gradient descent
+new_iterate = function(iterate, gradient_function, step_size)
+{
+ return( iterate - step_size * gradient_function(iterate) )
+}
+
+# Initialize step sizes
+alpha1 = 1.03
+alpha2 = 0.1
+
+# Prepare data frames with initial observation
+x1_data = x2_data = data.frame(x = x0, xsq = square(x0), nsteps = 0)
+
+# Perform max_iter iterations of gradient descent
+max_iter = 10
+for(i in 1:max_iter)
+{
+ x1_update = new_iterate(tail(x1_data$x,1), gradient, alpha1)
+ fx1_update = square(x1_update)
+ x1_data = rbind(x1_data, c(x1_update, fx1_update, i))
  
- 5-11
- k steps
+ x2_update = new_iterate(tail(x2_data$x,1), gradient, alpha2)
+ fx2_update = square(x2_update)
+ x2_data = rbind(x2_data, c(x2_update, fx2_update, i))
+}
 
-### Computational Efficieny
-5-9
+plot = plot + 
+  geom_point(data = x1_data, aes(x, xsq, frame=nsteps, fill="alpha = 1.03"), 
+            size = 3) + 
+ geom_point(data = x2_data, aes(x, xsq, frame = nsteps, fill="alpha = 0.10"),
+            size = 3) +
+ scale_fill_manual(name = '', 
+         values =c('initial'='#0000FF',
+                   'alpha = 1.03'='#FF0000',
+                   'alpha = 0.10'='#00FFFF'), 
+         labels = c('initial', 
+                    'alpha = 1.03', 
+                    'alpha = 0.10'))
+
+
+fig = ggplotly(plot)  %>%
+  animation_opts( frame = 2000, transition = 1000, redraw = FALSE ) 
+
+fig
+```
+
+We can see that the choice of step size had a major effect on our gradient descent algorithm. With too large a step size, $\alpha_1$, we actually got further away from the minimum with each step. While the smaller step size $\alpha_2$ moved closer to the minimum each iteration. So, how can you choose a good step size?
+
+
+#### Choosing a Step Size
+##### Lipschitz Constant
+For Lipschitz differentiable functions, we can use the Lipschitz constant to find a step size. Let's unpack that statement step by step.
+
+--------
+
+_Definition:_
+
+A function $g: \mathbb{R}^m \rightarrow \mathbb{R}^n$ is **Lipschitz continuous** with parameter $L$ if for all $x, y \in \mathbb{R}^m$,
+
+$$
+\norm{g(y)-g(x)}_2 \leq L \norm{y-x}_2.
+$$
+
+--------
+
+_Definition:_
+
+A function $f$ is $L$ **Lipschitz differentiable** is $\nabla f$ is Lipschitz continuous with parameter $L$.
+
+--------
+
+_Proposition (1):_
+
+Let $f: \mathbb{R}^n \rightarrow \mathbb{R}$ be $L$-Lipschitz differentiable. Then, for all $x, y \in \mathbb{R}^n$,
+
+$$
+f(y) \leq f(x) + \nabla f(x)^T (y-x) + \frac{ L }{ 2 } \norm{y-x}_2^2
+$$
+
+_Proof:_
+
+Take $g(t) = f(x + t(y-x))$ to be a line restriction. Notice that
+
+\begin{align*}
+	g(0) & = f(x) \\
+	g(1) & = f(y) \\
+	g'(t) & = \nabla f(x+t(y-x))^T (y-x).
+\end{align*}
+
+Then, by the Fundamental Theorem of Calculus,
+
+\begin{align*} 
+g(t) & = g(0) + \int_{0}^{1} g'(t) dt \\
+f(y) & = f(x) + \int_0^1 \nabla f(x+t(y-x))^T (y-x) dt.
+\end{align*}
+
+We will then add and subtract the same term (effectively adding 0) in different forms.
+
+\begin{align*}
+	f(y) & = f(x) + \int_0^1 \nabla f(x+t(y-x))^T (y-x) dt \\
+		 & = f(x) + \int_0^1 \nabla f(x+t(y-x))^T (y-x) dt \\
+		 & + \nabla f(x)^T (y-x) - \int_{0}^1 \nabla f(x)^T (y-x) dt \\
+		 & = f(x) + \nabla f(x)^T (y-x) + \int_0^1 [\nabla f(x+t(y-x)) - \nabla f(x)]^T (y-x) dt \\
+\end{align*}
+
+We can then apply the Cauchy-Schwartz inequality to the integral term.
+
+$$
+		 \int_0^1 [\nabla f(x+t(y-x)) - \nabla f(x)]^T (y-x) dt \leq \int_{0}^{1} \norm{\nabla f(x+t(y-x)) - \nabla f(x)}_2 \norm{y-x}_2 dt.
+$$
+
+Then, since $\nabla f$ is Lipschitz continuous,
+
+\begin{align*}
+		 \int_0^1 [\nabla f(x+t(y-x)) - \nabla f(x)]^T (y-x) dt		 & \leq \norm{y-x}_2 \int_{0}^1 L \norm{x+ t(y-x) -x }_2 dt \\
+		 & = \norm{y-x}_2 \int_{0}^1 L t \norm{y-x}_2 dt \\
+		 & = L \norm{y-x}_2^2 \int_0^1 t dt \\
+		 & = L \norm{y-x}_2^2 \Big(\frac{ t^2 }{ 2 }\Big) \Big\vert_{0}^1 \\
+		 & = \frac{ L }{ 2 } \norm{y-x}_2^2
+\end{align*}
+
+Thus,
+
+$$
+f(y) \leq f(x) + \nabla f(x)^T (y-x) + \frac{ L }{ 2 } \norm{y-x}_2^2.
+$$
+
+<div style="text-align: right"> 🐙 </div>
+
+
+Now we can apply this to gradient descent. Define
+
+$$
+g(\theta_ |\theta_{k}) := f( \theta_k) + \nabla f(\theta_k)^T (\theta - \theta_k) + \frac{ 1 }{ 2\alpha } \norm{\theta - \theta_k}^2.
+$$
+
+Then the gradient update is the solution to 
+
+$$
+\theta_{k+1} = \arg \min_{\theta} g(\theta | \theta_k).
+$$
+
+There few things to notice here.
+
+
+
+1. $f( \theta_k) = g(\theta_k | \theta_k)$ 
+
+2. $f( \theta ) \leq g(\theta | \theta_k)$ if $\alpha \leq \frac{ 1 }{ L }$
+
+These facts build the following inequality.
+
+$$
+f(\theta_k) = g(\theta_k | \theta_k) \geq g(\theta_{k+1} | \theta_k) \geq f (\theta_{k+1}).
+$$
+
+This inequality says that the function value at our new point cannot be larger than the function value at the previous point. So, given a step size of  $\alpha \leq \frac{ 1 }{ L }$, our gradient step if *guaranteed* to not move further from the optimal value. This is a very powerful result for Lipschitz continuous functions. We will use this and go through a full example.
+
+
+However, this only solves our problem if we know the Lipschitz constant. If we do not know it or do not want to calculate it, there is an iterative procedure for finding an appropriate step size.
+
+
+##### Backtracking Line Search
+The backtracking line search algorithm iteratively tries different step sizes until the following inequality is satisfied.
+
+$$
+f(x - a_k \nabla f(x)) < f(x) - \gamma a_k \norm{\nabla f(x)}_2^2
+$$
+
+
+This inequality comes from the $L$-Lipschitz differentiability of $f$ and a combination of the Wolfe conditions and the Armijo rule. Here $f$ is our objective function, $\alpha_k$ is our $k$th step size and $\gamma$ is a constant that we will set to $\frac{ 1 }{ 2 }$. Our update rule is $a_{k+1} = \beta \alpha_k$ for $\beta \in (0,1)$ and $a_0 > 0$. 
+
+Let's walk through what the start of this algorithm would look like.
+
+1. We start by initialize $\alpha_0$, $\beta$, and $\gamma$.
+2. We plug our $\alpha_0$ into the left side of the inequality.
+* Notice that this is the function evaluated at the next iterate with step size $\alpha_0$.
+3. We plug in our $\alpha_0$ the right hand side.
+4. Compare the left hand side and the right hand side. If the right hand side is bigger we stop, otherwise continue.
+5. Update the step size. $\alpha_1 = \beta \alpha_0$
+
+Note that you would run this algorithm every iteration of gradient descent to find an appropriate step size.
+
+In code, the backtracking line search is a simple function.
+
+``` {r, echo=TRUE, warning=FALSE}
+#' Backtracking
+#'
+#' @param fx handle to function that returns objective function values
+#' @param df the value of the gradient of objective function evaluated at the current x
+#' @param x current parameter estimate
+#' @param alpha current step-size
+#' @param gamma the backtracking parameter
+#' @param beta the decrementing multiplier
+#' @export
+backtrack <- function(fx, x, alpha, df, gamma=0.5, beta=0.9) {
+  while( (fx(x - alpha * df ) >= fx(x) - alpha * gamma * norm(df, "2")^2)  & (t > 1e-10))
+      alpha <- alpha * beta
+
+  return(alpha)
+}
+```
+
+If $f$ is $L$-Lipschitz differentiable, then $\alpha_k \geq \alpha_{\min} = \min\{\alpha_0, \beta / L\}$.
+
+
+
+### When To Stop
+
+While we may converge to our optimal point with gradient descent, we may never *exactly* achieve it. If we do not reach the exact point where the gradient vanishes, our function will continue to iterate. We want to avoid this. If our function stops changing drastically each iteration, then we can assume that we have found the optimal point and stop the computation. Here are a few heuristics that we can check.
+
+
+We can track the relative change in objective function. We will stop the computation if the change in our $f(x)$ values is very small (less than some set tolerance) between iterations.
+
+$$
+\frac{ f(b_k) - f(b_{k+1}) }{ 1 + |f(b_k)| } \leq \text{tolerance}
+$$
+
+
+We can similarly track the relative change relative change in iterate value.
+
+$$
+\frac{ \norm{b_k-b_{k+1}} }{ 1 + \norm{b_k} } \leq \text{tolerance}
+$$
+
+If we stricter stopping conditions, we can check the Duality gap and the KKT conditions of our objective function.
+
+These can save us a lot of time, stopping the computation when it has effectively found the minimum.
+
+## Computational Efficiency
+Gradient descent is a first order algorithm, meaning that we only need to find the gradient of our objective function at each step. This can generally be done in linear time. Then the only remaining operations are a scalar-vector multiplication and a vector-vector subtraction. Both of these take linear time. If $p$ is the length of $\theta$,
+
+$$
+\theta_{k+1} = \underbrace{\theta_k - \overbrace{\alpha \cdot\underbrace{\nabla f(\theta_k)}_{\mathcal{O}( p )}}^{\mathcal{O}( p )}}_{\mathcal{O}( p )}.
+$$
+
+Thus, we get an overall complexity of $\mathcal{O}( p )$.
+
+
+Comparatively, a second order algorithm, such as Newton's Method, which looks similar to gradient descent can be much more expensive. Newton's Method requires the gradient, as well as the Hessian. It also needs to invert the Hessian, which is a very expensive operation that can take cubic time if no special structure is identified.
+
 
 # Examples + Code
 
@@ -104,20 +402,201 @@ backtracking line search
 "Maybe some numerical experiments illustrating the convergence properties of applying gradient descent on a strongly convex function."
 
 
-# When it doesn't work / setbacks
+# Issues with Gradient Descent
 
-## Issues with gradient descent
+Gradient descent has some notable drawbacks that you should be aware when deciding if it is the right algorithm for your problem.
 
-4 - 6
+True to its name, gradient descent requires the objective function to have a gradient. This rules out using it for non-differentiable functions.
+
+We saw how the role step size can play in our gradient descent algorithm. Choosing too big a step size for $f(x)=x^2$ made each step actually move further from the optimal point. Choosing a smaller step size could fix this, but choosing too small a step size will greatly increase the number of iterations and thus the computational time. This is to say, gradient descent can be very sensitive to step size parameter, particularly when it is fixed and not based on an already known Lipschitz constant.
+
+When considering convex and strongly convex objective functions, the choice of starting iterate $x_0$ may seem arbitrary and unimportant, but for others functions this can be very important.
+
+For example, let's look at $f(x) = x^3 e^x$. 
+
+``` {r, echo=FALSE, warning=FALSE}
+library(ggplot2)
+x = seq(-7.5,1,0.01)
+
+objective = function(x)
+{
+ return(x^3 * exp(x))
+}
+
+fx = data.frame(x = x, obj = objective(x))
+
+
+# Data frame of the zero point (x0, f(x0))
+zeros = c(0, -3)
+zero_points = data.frame( x = zeros, obj = objective(zeros))
+
+plot = ggplot() +
+ geom_line(data = fx, aes(x, obj)) +
+ geom_point(data = zero_points, aes(x, obj),
+            size = 2) + 
+ ylab('x^3 e^x') +
+ xlab('x')
+
+plot
+```
+
+
+Here we can see that there are two critical values, a saddle point at $x=0$ a minimum at $x=-3$. Since the gradient is 0 at both of these points, whichever is found first will be returned as the optimal value. If our starting point is to the left of $0$, we will find the minimum as desired, but if our starting point is greater than $0$, we will get stuck at the saddle point.
+
+``` {r, echo=FALSE, warning=FALSE}
+library(plotly)
+
+gradient = function(x)
+{
+ return(3 * exp(x) * x^2 + exp(x) * x^3 )
+}
+
+# Find new iterate via gradient descent
+new_iterate = function(iterate, gradient_function, step_size)
+{
+ return( iterate - step_size * gradient_function(iterate) )
+}
+
+# Initialize step sizes
+x01 = 0.5
+x02 = -0.5
+alpha = 0.1
+
+# Prepare data frames with initial observation
+x1_data = data.frame(x = x01, obj = objective(x01), nsteps = 0)
+x2_data = data.frame(x = x02, obj = objective(x02), nsteps = 0)
+
+# Perform max_iter iterations of gradient descent
+max_iter = 10
+for(i in 1:max_iter)
+{
+ x1_update = new_iterate(tail(x1_data$x,1), gradient, alpha)
+ fx1_update = objective(x1_update)
+ x1_data = rbind(x1_data, c(x1_update, fx1_update, i))
+ 
+ x2_update = new_iterate(tail(x2_data$x,1), gradient, alpha)
+ fx2_update = objective(x2_update)
+ x2_data = rbind(x2_data, c(x2_update, fx2_update, i))
+}
+
+plot = plot + 
+ geom_point(data = x1_data, aes(x, obj, frame=nsteps, fill="x0 = 0.5"), 
+            size = 3) + 
+ geom_point(data = x2_data, aes(x, obj, frame = nsteps, fill="x0 = -0.5"),
+            size = 3) +
+ scale_fill_manual(name = '', 
+                   values =c(
+                             'x0 = 0.5'='#FF0000',
+                             'x0 = -0.5'='#00FFFF'), 
+                   labels = c(
+                              'x0 = 0.5', 
+                              'x0 = -0.5'))
+
+
+fig = ggplotly(plot)  %>%
+ animation_opts( frame = 2000, transition = 1000, redraw = FALSE ) 
+
+fig
+```
+
+
+A similar problem we may encounter is reaching a global minimum. For example, take $f(x) = x^2 e^x + x^3 e^x$. Since this function is fairly simple, we can compute the zeros before checking them with gradient descent. We notice there is a local minimum at $x=0$, a local maximum at $x = -2 + \sqrt{2 }$ and a global minimum at $x = -2 - \sqrt{ 2 }$. 
+
+Assuming we are choosing a starting position $x_0$ randomly, gradient descent we will not get stuck on the maximum unless we choose $x_0 = -2 + \sqrt{ 2 }$, which will happen with probability $0$. However, our starting point will determine which of the minimum values we converge towards. If we are anywhere to the right of $-2 + \sqrt{ 2 }$, we will converge to the local minimum at $x=0$ and if we are to the left of $-2 + \sqrt{ 2 }$ we will converge to the global minimum at $-2 - \sqrt{ 2 }$.
+
+``` {r, echo=FALSE, warning=FALSE}
+x = seq(-7.5,1,0.01)
+
+objective = function(x)
+{
+ return(x^3 * exp(x) + x^2 * exp(x))
+}
+
+fx = data.frame(x = x, obj = objective(x))
+
+
+# Data frame of the zero point (x0, f(x0))
+zeros = c(0, -2 - sqrt(2))
+zero_points = data.frame( x = zeros, obj = objective(zeros))
+
+plot = ggplot() +
+  geom_vline(xintercept=-2+sqrt(2)) +
+ geom_line(data = fx, aes(x, obj)) +
+ geom_point(data = zero_points, aes(x, obj),
+            size = 2) + 
+ ylab('x^3 e^x + x^2 e^x') +
+ xlab('x')
+
+gradient = function(x)
+{
+ return(2*x*exp(x) + 4*exp(x)*x^2 + exp(x)*x^3 )
+}
+
+# Find new iterate via gradient descent
+new_iterate = function(iterate, gradient_function, step_size)
+{
+ return( iterate - step_size * gradient_function(iterate) )
+}
+
+# Initialize step sizes
+x01 = -0.5
+x02 = -1
+alpha = 0.2
+
+# Prepare data frames with initial observation
+x1_data = data.frame(x = x01, obj = objective(x01), nsteps = 0)
+x2_data = data.frame(x = x02, obj = objective(x02), nsteps = 0)
+
+# Perform max_iter iterations of gradient descent
+max_iter = 10
+for(i in 1:max_iter)
+{
+ x1_update = new_iterate(tail(x1_data$x,1), gradient, alpha)
+ fx1_update = objective(x1_update)
+ x1_data = rbind(x1_data, c(x1_update, fx1_update, i))
+ 
+ x2_update = new_iterate(tail(x2_data$x,1), gradient, alpha)
+ fx2_update = objective(x2_update)
+ x2_data = rbind(x2_data, c(x2_update, fx2_update, i))
+}
+
+plot = plot + 
+ geom_point(data = x1_data, aes(x, obj, frame=nsteps, fill="x0 = -0.5"), 
+            size = 3) + 
+ geom_point(data = x2_data, aes(x, obj, frame = nsteps, fill="x0 = 1"),
+            size = 3) +
+ scale_fill_manual(name = '', 
+                   values =c(
+                             'x0 = -0.5'='#FF0000',
+                             'x0 = 1'='#00FFFF'), 
+                   labels = c(
+                              'x0 = -0.5', 
+                              'x0 = 1')) +
+ ylim(-1,2)
+
+
+fig = ggplotly(plot)  %>%
+ animation_opts( frame = 2000, transition = 1000, redraw = FALSE ) 
+
+fig
+```
 
 
 
-## Function it doesn't apply to / violates assumptions
+# Extensions and Applications
 
+## Stochastic Gradient Descent
 
+https://www.youtube.com/watch?v=hMLUgM6kTp8
 
+## Neural networks
+
+## Proximal Gradient Descent
 
 # Alternatives
 
 ## Newton / Quasi-Newton Methods
 
+
+# References
+ 

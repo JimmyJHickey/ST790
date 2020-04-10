@@ -5,4 +5,7 @@ h1, .tocify-header{
 
 h2, .tocify-subheader{
   color: black;
+  text-indent: 0px;
+
 }
+
