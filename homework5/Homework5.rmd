@@ -1,0 +1,217 @@
+---
+title: "Homework 5"
+author: "Jimmy Hickey"
+date: "Due @ 11:59pm on April 18, 2020"
+header-includes:
+  - \usepackage{bm}
+  - \newcommand{\Real}{\mathbb{R}}
+  - \newcommand{\dom}{{\bf dom}\,}
+  - \newcommand{\Tra}{^{\sf T}} % Transpose
+  - \newcommand{\Inv}{^{-1}} % Inverse
+  - \def\vec{\mathop{\rm vec}\nolimits}
+  - \newcommand{\diag}{\mathop{\rm diag}\nolimits}
+  - \newcommand{\tr}{\operatorname{tr}} % Trace
+  - \newcommand{\epi}{\operatorname{epi}} % epigraph
+  - \newcommand{\V}[1]{{\bm{\mathbf{\MakeLowercase{#1}}}}} % vector
+  - \newcommand{\VE}[2]{\MakeLowercase{#1}_{#2}} % vector element
+  - \newcommand{\Vn}[2]{\V{#1}^{(#2)}} % n-th vector
+  - \newcommand{\Vtilde}[1]{{\bm{\tilde \mathbf{\MakeLowercase{#1}}}}} % vector
+  - \newcommand{\Vhat}[1]{{\bm{\hat \mathbf{\MakeLowercase{#1}}}}} % vector
+  - \newcommand{\VtildeE}[2]{\tilde{\MakeLowercase{#1}}_{#2}} % vector element
+  - \newcommand{\M}[1]{{\bm{\mathbf{\MakeUppercase{#1}}}}} % matrix
+  - \newcommand{\ME}[2]{\MakeLowercase{#1}_{#2}} % matrix element
+  - \newcommand{\Mtilde}[1]{{\bm{\tilde \mathbf{\MakeUppercase{#1}}}}} % matrix
+  - \newcommand{\Mbar}[1]{{\bm{\bar \mathbf{\MakeUppercase{#1}}}}} % matrix
+  - \newcommand{\Mn}[2]{\M{#1}^{(#2)}} % n-th matrix
+output: pdf_document
+---
+
+**Part 1.** In this homework we will study two algorithms for iteratively computing the generalized lasso solution.
+
+Let $\V{y} \in \Real^n$ and $\M{X} \in \Real^{n \times p}$ denote a response and design matrix. The generalized lasso is the solution to the following optimization problem.
+$$
+\text{minimize}\; \frac{1}{2} \lVert \V{y} - \M{X}\V{b} \rVert_2^2 + \lambda \lVert \M{D}\V{b} \rVert_1,
+$$
+where $\lambda \geq 0$ is a tuning parameter that trades off sparsity in the linear transformation $\M{D}\V{b}$ of $\V{b}$ and the discrepancy between the linear model $\M{X}\V{b}$ and the response $\V{y}$. In this assignment we consider the simpler problem where $\M{X} = \M{I}$.
+$$
+\text{minimize}\; \frac{1}{2} \lVert \V{y} - \V{b} \rVert_2^2 + \lambda \lVert \M{D}\V{b} \rVert_1,
+$$
+This is the case, for example, for the fused lasso or trend filtering. The optimization problem is challanging to solve due to the term $\lVert \M{D}\V{b} \rVert_1$.
+
+Thus, consider the following equivalent equality constrained problem.
+$$
+\begin{aligned}
+\text{minimize}\;& \frac{1}{2} \lVert \V{y} - \V{b} \rVert_2^2 + \lambda \lVert \V{\theta} \rVert_1 \\
+\text{subject to}\;& \M{D}\V{b} = \V{\theta}.
+\end{aligned}
+$$
+
+**1.** Show that the dual problem is given by
+$$
+\begin{aligned}
+\text{maximize}\;& \frac{1}{2}\lVert \V{y} \rVert_2^2 - \frac{1}{2} \lVert \V{y} - \M{D}\Tra\V{v} \rVert_2^2 \\
+\text{subject to}\;& \lVert \V{v} \rVert_\infty \leq \lambda.
+\end{aligned}
+$$
+
+**2.** What are the KKT conditions for this primal-dual pair of optimization problems?
+
+**3.** Convert your KKT conditions into a single scalar equation involving a KKT residual. You will use this and the duality gap to evaluate the correctness of your algorithms in part 2.
+
+**4.** How do you map a dual variable $\V{v}$ to a primal variable $\V{b}$?
+
+Note that we may equivalently solve the following box constrained least squares problem.
+
+$$
+\begin{aligned}
+\text{minimize}\;& \frac{1}{2} \lVert \V{y} - \M{D}\Tra\V{v} \rVert_2^2 \\
+\text{subject to}\;& \lVert \V{v} \rVert_\infty \leq \lambda.
+\end{aligned}
+$$
+
+**5.** Prove that the projection of $x \in \Real$ onto the interval $[-\lambda, \lambda]$ is given by
+$$
+P_{[-\lambda,\lambda]}(x) = \begin{cases}
+\lambda & x > \lambda \\
+-\lambda & x < -\lambda \\
+x & \lvert x \rvert \leq \lambda
+\end{cases}
+$$
+
+\newpage
+
+**6.** Derive a coordinate descent algorithm for solving the dual problem and write out pseudocode for your algorithm.
+
+```{r, tidy=FALSE, eval=FALSE, highlight=FALSE }
+repeat
+  Do something
+  Do something else
+  etc.
+until convergence
+```
+
+**7.** Prove that the dual objective is Lipschitz differentiable with constant $L = \lVert \M{D} \rVert^2_{\text{op}}$.
+
+**8.** Derive a proximal gradient algorithm for solving the dual problem and write out pseudocode for your algorithm.
+
+```{r, tidy=FALSE, eval=FALSE, highlight=FALSE }
+repeat
+  Do something
+  Do something else
+  etc.
+until convergence
+```
+
+**Part 2.** You will implement a coordinate descent algorithm and proximal gradient algorithm for solving the trend filtering problem.
+
+**Step 1:** Write a function to compute the $k$th order differencing matrix $\Mn{D}{k}_n$.
+
+```{r, echo=TRUE}
+#' Compute kth order differencing matrix
+#' 
+#' @param k order of the differencing matrix
+#' @param n Number of time points
+#' @export
+myGetDkn <- function(k, n) {
+  
+}
+```
+
+**Step 2:** Write a function to compute the KKT residual you derived in part 1.
+
+```{r, echo=TRUE}
+#' Compute KKT residual
+#' 
+#' @param y response
+#' @param b primal variable
+#' @param theta primal variable
+#' @param v dual variable
+#' @param D differencing matrix
+#' @param lambda regularization parameter
+#' @export
+kkt_residual <- function(y, b, theta, v, D, lambda) {
+  
+}
+```
+
+\newpage
+
+**Step 3:** Write a function to compute the duality gap.
+```{r, echo=TRUE}
+#' Compute duality gap
+#' 
+#' @param y response
+#' @param b primal variable
+#' @param v dual variable
+#' @param D differencing matrix
+#' @param lambda regularization parameter
+#' @export
+duality_gap <- function(y, b, v, D, lambda) {
+  
+}
+```
+
+**Step 4:** Write a coordinate descent algorithm for solving the dual problem. Use the relative change in function values as a stopping criterion.
+
+```{r, echo=TRUE}
+#' Solve trend-filtering by coordinate descent on dual problem
+#' 
+#' @param y response
+#' @param k order of differencing matrix
+#' @param v Initial dual variable
+#' @param lambda regularization parameter
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+trend_filter_cd <- function(y, k, v, lambda=0, max_iter=1e2, tol=1e-3) {
+  
+}
+```
+
+Your function should return
+
+- The final iterate value
+- The objective function values
+- The relative change in the function values
+- The relative change in the iterate values
+- The KKT residual after every iteration
+- The duality gap after every iteration
+
+\newpage
+
+**Step 5:** Write a proximal gradient algorithm for solving the dual problem. Use the relative change in function values as a stopping criterion. You may either use a fixed step size or write your own backtracking line search functions.
+
+```{r, echo=TRUE}
+#' Solve trend-filtering by proximal gradient on dual problem
+#' 
+#' @param y response
+#' @param k order of differencing matrix
+#' @param v Initial dual variable
+#' @param lambda regularization parameter
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+trend_filter_pg <- function(y, k, v, lambda=0, max_iter=1e2, tol=1e-3) {
+  
+}
+```
+
+Your function should return
+
+- The final iterate value
+- The objective function values
+- The relative change in the function values
+- The relative change in the iterate values
+- The KKT residual after every iteration
+- The duality gap after every iteration
+
+**Step 6:** Use your two trend filtering function to smooth some interesting time series data. For example, you might use the tseries R package on CRAN (see the function **get.hist.quote**) to download historical financial data for the daily closing prices of Apple stock over the past two years. You may use the same data used in Homework 4. Try several $\lambda$ values - different enough to generate noticably different smoothed estimates - and at least two differencing matrix orders, e.g. $\Mn{D}{2}_n$ and $\Mn{D}{3}_n$.
+
+For both algorithms (and all $\lambda$ and all differencing matrices) plot the following
+
+- The noisy data and smoothed estimates.
+
+For both algorithms (and one $\lambda$ and one differencing matrix) plot the following against the iteration
+
+- The relative change in the function values
+- The relative change in the iterate values
+- The KKT residual after every iteration
+- The duality gap after every iteration
