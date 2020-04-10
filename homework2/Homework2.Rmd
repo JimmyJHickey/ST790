@@ -494,10 +494,10 @@ knitr::include_graphics('img/x0_backtracking_objective_change.png')
 knitr::include_graphics('img/xy_backtracking_objective_change.png')
 ```
 
-With the backtracking we see a few inconsitent points at the beginning. This is where the algorithm is able to take advantage of larger step sizes. As we get closer to the minimum we see smaller changes. In these two examples the larger step sizes helped a lot, notice how much faster the backtracking converges.
+With the backtracking we see a few inconsistent points at the beginning. This is where the algorithm is able to take advantage of larger step sizes. As we get closer to the minimum we see smaller changes. In these two examples the larger step sizes helped a lot, notice how much faster the backtracking converges.
 
 
-**Step 10:** Use your code above to smooth some interesting time series data. For example, you might use the tseries R package on CRAN (see the function **get.hist.quote**) to download historical financial data for the daily closing prices of Apple stock over the past two years. Try at least 3 different $\lambda$ values - different enough to generate noticably different smoothed estimates - and at least two differencing matrix orders, e.g. $\Mn{D}{2}$ and $\Mn{D}{3}$. For all six $\lambda$ and differencing matrices combinations, plot the noisy data, as points, and smoothed estimates, as a line.
+**Step 10:** Use your code above to smooth some interesting time series data. For example, you might use the tseries R package on CRAN (see the function **get.hist.quote**) to download historical financial data for the daily closing prices of Apple stock over the past two years. Try at least 3 different $\lambda$ values - different enough to generate noticeably different smoothed estimates - and at least two differencing matrix orders, e.g. $\Mn{D}{2}$ and $\Mn{D}{3}$. For all six $\lambda$ and differencing matrices combinations, plot the noisy data, as points, and smoothed estimates, as a line.
 
 This is AAPL stock data from 2018-01-01 to 2020-01-01 taking at closing each day.
 
