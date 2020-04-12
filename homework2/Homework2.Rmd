@@ -139,7 +139,7 @@ We can proceed with the triangle inequality.
 	  & \leq ||I||_{op} + || \lambda (\Mn{D}{k}_n)^T \Mn{D}{k}_n|| & \text{Triangle Inequality} \\
 	  & = 1 + \lambda || (\Mn{D}{k}_n)^T \Mn{D}{k}_n ||_{op} \\
 	  & \leq 1 + \lambda ||(\Mn{D}{k}_n)^T||_{op} ||\Mn{D}{k}_n||_{op} & \text{Cauchy-Schwartz} \\
-	  & 1 + \lambda || \Mn{D}{k}_n ||_{op} & ||A^T||_{op}= ||A||_{op}
+	  & 1 + \lambda || \Mn{D}{k}_n ||_{op}^2 & ||A^T||_{op}= ||A||_{op}
 \end{align*}
 
 Thus, take $L = 1 + \lambda || \Mn{D}{k}_n ||_{op}$.
