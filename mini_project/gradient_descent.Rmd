@@ -423,27 +423,7 @@ If $f$ is $L$-Lipschitz differentiable, then $\alpha_k \geq \alpha_{\min} = \min
 
 Note that you would run this algorithm every iteration of gradient descent to find an appropriate step size.
 
-In code, the backtracking line search is a simple function.
-
-``` {r, echo=TRUE, warning=FALSE}
-#' Backtracking
-#'
-#' @param fx handle to function that returns objective function values
-#' @param df the value of the gradient of objective function evaluated at the current x
-#' @param x current parameter estimate
-#' @param alpha current step-size
-#' @param gamma the backtracking parameter
-#' @param beta the decrementing multiplier
-#' @export
-backtrack <- function(fx, x, alpha, df, gamma=0.5, beta=0.9) {
-  while( (fx(x - alpha * df ) >= fx(x) - alpha * gamma * norm(df, "2")^2)  & (t > 1e-10))
-      alpha <- alpha * beta
-
-  return(alpha)
-}
-```
-
-
+In code, the backtracking line search is a simple function which we will see in our first example.
 
 
 ### When To Stop
@@ -471,18 +451,132 @@ These can save us a lot of time, stopping the computation when it has effectivel
 ## Convergence of Gradient Descent
 
 ### Strong Convexity and Coercivity
-How do we know that when we stop that we have actually achieved **the** minimum point of our objective function? Before even running the algorithm, we need to prove that there is **a** global minimum. We can do this by showing that our objective function is _strongly convex_ and _coercive_.
+We will show that with certain objective functions, our fixed step size gradient descent algorithm is guaranteed to converge to a single global minimum. However, we will need a few definitions first.
+
+--------
+
+_Definition:_
+
+A function $f$ is _strongly convex_ with parameter $m > 0$ if
+
+$$
+f(x) - \frac{ m }{ 2 } \norm{x}_2^2 \text{ is convex}.
+$$
+
+--------
+
+We can check this with a few different conditions.
+
+1. Jensen's Inequality
+
+$$
+f(\alpha x + (1 - \alpha) y) \leq \alpha f(x) + (1-\alpha) f(y) - \frac{ m }{ 2 } \alpha (1-\alpha) \norm{x-y}_2^2
+$$
+
+2. First-order condition
+$$
+f(y) \geq f(x) + \nabla f(x)^T (y-x) + \frac{ m }{ 2 } \norm{x-y}_2^2
+$$
+* This means that $f$ can under-bound with a quadratic under-estimator ( not just a linear under-estimator)
+
+3. Second-order condition
+$$
+\nabla^2 f(x) \succeq m I
+$$
 
 
-We will see later in [Issues with Gradient Descent](#Issues-with-Gradient-Descent) examples of functions that are not strongly convex and coercive and the consequences of running gradient descent on them.
+--------
 
-### Convergence via Zangwill-Meyer Theorem
+_Definition:_
+
+A continuous function $f(x)$ on $\mathbb{R}^n$ is coercive if
+
+$$
+\lim_{\norm{x} \rightarrow \infty} f(x) = + \infty
+$$
+
+--------
+
+This can be restated as: for any constant $M>0$, there exists a constant $R_M > 0$ such that $f(x) > M$ whenever $\norm{x} > R_M$.
+
+Notice that the sublevel set of a coercive function must be compact; then, if a function that is both strongly convex and coercive must achieve its single global minimum by the Weierstrass Extreme Value Theorem.
+
+### Zangwill-Meyer Theorem
+
+We will use the Zangwill-Meyer theorem to prove convergence.
+
+--------
+
+_Theorem:_
+
+Let $f$ be a continuous function on a domain $\mathcal D$, and let $\psi$ be a continuous iterative map from $\mathcal D$ into $\mathcal D$ such that $f(\psi(x)) < f(x)$ for all $x \in \mathcal D$ with $\psi(x) \neq x$. Suppose there is an $x_0$ such that the set $\mathcal L _f(x_0) = \{x \in \mathcal D : f(x) \leq f(x_0) \}$ is compact. Define $x_{k+1} = \psi(x_k)$ for $k = 0 , 1 , \dots$. Then,
+
+1. the sequence of iterates $\{x_k\}$ has at least one limit point and all its limit points are fixed points of $\psi$,
+
+2. the distance between successive iterates converges to $0$, i.e. $\norm{x_{k+1}-x_{k}} \rightarrow 0$.
+
+--------
+
+These boil down to 4 easy conditions that we can check.
+
+1. $f$ is continuous
+2. $\psi$ is continuous
+3. $f(\psi(x)) < f(x)$ for $x \neq \psi(x)$
+4. $\mathcal L(x_0)$ is compact
 
 
-ZM conditions
+Now let's apply it to gradient descent with a fixed step size. We will make a few assumptions on our function. 
 
-extra pdf
+_Assumptions:_
 
+Take $f: \mathbb{R}^n \rightarrow \mathbb{R}$ such that
+
+1. $f$ is convex and differentiable with $\text{dom} f = \mathbb{R}^n$
+2. $\nabla f(x)$ is $L$-Lipschitz continuous
+3. $f$ attains its minimum value $f^*$ at $x^*$
+4. $f$ is coercive
+
+_Claim:_
+If we minimize $f$ using gradient descent using a fixed step size $\alpha \in (0, \frac{ 1 }{ L }]$. Our update is $\psi(x) = x - \alpha \nabla f(x)$ and $x_{n+1} = \psi(x_n)$. Then $x_n \rightarrow x^*$.
+
+
+_Proof:_
+
+We can check our conditions.
+
+**1. $f$ is convex and differentiable with $\text{dom} f = \mathbb{R}^n$**
+
+By definition $f$ is differentiable and continuous.
+
+**2. $\psi$ is continuous**
+
+By definition $\psi$ is continuous.
+
+**3. $f$ attains its minimum value $f^*$ at $x^*$**
+
+By Lipschitz differentiability
+
+$$
+\begin{align}
+f(\psi(x)) & \leq f(x) + \langle \nabla f(x) , \psi(x) - x \rangle + \frac{ L }{ 2 } \norm{\psi(x) - x}_2^2 \\
+ & =  f(x) + \langle \nabla f(x) , x - \alpha \nabla f(x) - x \rangle + \frac{ L }{ 2 } \norm{x - \alpha \nabla f(x) - x}_2^2 \\
+  & =  f(x) - \alpha \langle \nabla f(x) , \nabla f(x)  \rangle + \frac{ L }{ 2 } \norm{- \alpha \nabla f(x)}_2^2 \\
+  & = f(x) - \alpha \norm{\nabla f(x)} - \frac{ \alpha L }{ 2 } \norm{\nabla f(x)}_2^2 \\
+ & \leq f(x) - \frac{ \alpha }{ 2 } \norm{\nabla f(x)}_2^2 \\
+ & < f(x)
+\end{align}
+$$
+
+**4. $\mathcal L(x_0)$ is compact**
+
+Since $f$ is coercive, $\mathcal L_f(x_0) \equiv \{x \in \mathcal D : f(x) \leq f(x_0) \}$ is compact for $x_0$.
+
+
+By Meyer's convergence theorem, the limit points of $x_n$ are fixed points of $\psi$. And fixed points of $\psi$ are also stationary points of $f$. Therefore, the limit points $x_n$ are stationary points of $f$. Since we assumed that $f$ is convex and has a unique global minimizer, it has exactly one stationary point. So, $x_n$ has exactly one limit point. Thus, $x_n \rightarrow x^*$.
+<div style="text-align: right"> 🐙 </div>
+
+
+We will see later in Issues with Gradient Descent examples of functions that are not strongly convex and coercive and the consequences of running gradient descent on them.
 
 ## Computational Efficiency
 Gradient descent is a first order algorithm, meaning that we only need to find the gradient of our objective function at each step. This can generally be done in linear time. Then the only remaining operations are a scalar-vector multiplication and a vector-vector subtraction. Both of these take linear time. If $p$ is the length of $\theta$,
@@ -501,9 +595,52 @@ Comparatively, a second order algorithm, such as Newton's Method, which looks si
 
 ## Nonnegative Least Squares
 
-5 - 17
+Let's start with a quick, familiar problem before hopping into a more thorough example. We will look at the nonnegative least squares problem. Our objective function is
 
-"Maybe some numerical experiments illustrating the convergence properties of applying gradient descent on a strongly convex function."
+$$
+\min_{b \in \mathbb{R}^p_+} f(b) = \frac{ 1 }{ 2 } \norm{y - Xb}_2^2 .
+$$
+
+For simplicity, let's assume that $X$ has full column rank with positive entries. Then $f$ is strongly convex.
+
+Recall that for vectors $a$ and $b$ and matrix $A$
+
+$$
+\frac{  \partial a^T b }{\partial b  } = a, \ \frac{  \partial b^T A b}{ \partial b  } = (A + A^T)b.
+$$
+
+
+\begin{align*}
+f(b) & = \frac{ 1 }{ 2 } \norm{y - Xb}_2^2 \\
+ & = \frac{ 1 }{ 2 }(y-Xb)^T (y-Xb) \\
+ & = \frac{ 1 }{ 2 } \Big( y^T y - y^T X b + b^T X^T y + b^T X^T b X \Big) \\
+ & = \frac{ 1 }{ 2 } \Big( y^T y - 2 y^T X b + b^T X^T b X \Big) & \text{scalar} \\ \\
+ \nabla f(b) & = -X^T y + \frac{ 1 }{ 2 }(X^T X + (X^T X)^T)b \\
+  & = -X^T y + X^T X b \\ \\
+\nabla ^2 f(b) & = X^T X
+\end{align*}
+
+
+Take $m = 1$, then
+
+$$
+\nabla^2 f(x) - m I = X^T X - I \succeq 0
+$$
+
+Then $f(b)$ is strongly convex by the second order condition.
+
+Notice that the $b$ term of our objective is in an norm squared. Thus, as the iterates grow, so will the objective function.
+
+$$
+\lim_{b\rightarrow \infty} f(b) = + \infty
+$$
+
+
+Thus, $f$ is also coercive. Since it is coercive and strongly convex, it has a unique global minimizer that it attains. 
+
+Now let's code the problem up! We will practice using backtracking to find our step size.
+
+Let's generate some data around the line $y = 4.6 x$
 
 
 
@@ -608,11 +745,6 @@ Here $\lambda$ is a non-negative tuning parameter and $D_n^{(k)}$ is the $k$th o
 
 We want to show that $\ell$ is strongly convex, coercive, and find its Lipschitz constant. We will start by finding its gradient and Hessian.
 
-Recall that for vectors $a$ and $b$ and matrix $A$
-
-$$
-\frac{  \partial a^T b }{\partial b  } = a, \ \frac{  \partial b^T A b}{ \partial b  } = (A + A^T)b
-$$
 
 \begin{align*}
 \ell (\theta) & = \frac{1}{2} \lVert y - \theta \rVert_2^2 + \frac{\lambda}{2} \lVert \Dkn{k}{n} \theta \rVert_2^2 \\
@@ -1101,77 +1233,77 @@ objective = function(x)
 fx = data.frame(x = x, obj = objective(x))
 
 
-# Data frame of the zero point (x0, f(x0))
-zeros = c(0, -3)
-zero_points = data.frame( x = zeros, obj = objective(zeros))
-
-plot = ggplot() +
- geom_line(data = fx, aes(x, obj)) +
- geom_point(data = zero_points, aes(x, obj),
-            size = 2) + 
- ylab('x^3 e^x') +
- xlab('x')
-
-plot
+ # Data frame of the zero point (x0, f(x0))
+ zeros = c(0, -3)
+ zero_points = data.frame( x = zeros, obj = objective(zeros))
+ 
+ plot = ggplot() +
+  geom_line(data = fx, aes(x, obj)) +
+  geom_point(data = zero_points, aes(x, obj),
+             size = 2) + 
+  ylab('x^3 e^x') +
+  xlab('x')
+ 
+ plot
 ```
 
 
 Here we can see that there are two critical values, a saddle point at $x=0$ a minimum at $x=-3$. Since the gradient is 0 at both of these points, whichever is found first will be returned as the optimal value. If our starting point is to the left of $0$, we will find the minimum as desired, but if our starting point is greater than $0$, we will get stuck at the saddle point.
 
 ``` {r, echo=FALSE, warning=FALSE}
-library(plotly)
-
-gradient = function(x)
-{
- return(3 * exp(x) * x^2 + exp(x) * x^3 )
-}
-
-# Find new iterate via gradient descent
-new_iterate = function(iterate, gradient_function, step_size)
-{
- return( iterate - step_size * gradient_function(iterate) )
-}
-
-# Initialize step sizes
-x01 = 0.5
-x02 = -0.5
-alpha = 0.1
-
-# Prepare data frames with initial observation
-x1_data = data.frame(x = x01, obj = objective(x01), nsteps = 0)
-x2_data = data.frame(x = x02, obj = objective(x02), nsteps = 0)
-
-# Perform max_iter iterations of gradient descent
-max_iter = 10
-for(i in 1:max_iter)
-{
- x1_update = new_iterate(tail(x1_data$x,1), gradient, alpha)
- fx1_update = objective(x1_update)
- x1_data = rbind(x1_data, c(x1_update, fx1_update, i))
+ library(plotly)
  
- x2_update = new_iterate(tail(x2_data$x,1), gradient, alpha)
- fx2_update = objective(x2_update)
- x2_data = rbind(x2_data, c(x2_update, fx2_update, i))
-}
+ gradient = function(x)
+ {
+  return(3 * exp(x) * x^2 + exp(x) * x^3 )
+ }
 
-plot = plot + 
- geom_point(data = x1_data, aes(x, obj, frame=nsteps, fill="x0 = 0.5"), 
-            size = 3) + 
- geom_point(data = x2_data, aes(x, obj, frame = nsteps, fill="x0 = -0.5"),
-            size = 3) +
- scale_fill_manual(name = '', 
-                   values =c(
-                             'x0 = 0.5'='#FF0000',
-                             'x0 = -0.5'='#00FFFF'), 
-                   labels = c(
-                              'x0 = 0.5', 
-                              'x0 = -0.5'))
-
-
-fig = ggplotly(plot)  %>%
- animation_opts( frame = 2000, transition = 1000, redraw = FALSE ) 
-
-fig
+ # Find new iterate via gradient descent
+ new_iterate = function(iterate, gradient_function, step_size)
+ {
+  return( iterate - step_size * gradient_function(iterate) )
+ }
+ 
+ # Initialize step sizes
+ x01 = 0.5
+ x02 = -0.5
+ alpha = 0.1
+ 
+ # Prepare data frames with initial observation
+ x1_data = data.frame(x = x01, obj = objective(x01), nsteps = 0)
+ x2_data = data.frame(x = x02, obj = objective(x02), nsteps = 0)
+ 
+ # Perform max_iter iterations of gradient descent
+ max_iter = 10
+ for(i in 1:max_iter)
+ {
+  x1_update = new_iterate(tail(x1_data$x,1), gradient, alpha)
+  fx1_update = objective(x1_update)
+  x1_data = rbind(x1_data, c(x1_update, fx1_update, i))
+  
+  x2_update = new_iterate(tail(x2_data$x,1), gradient, alpha)
+  fx2_update = objective(x2_update)
+  x2_data = rbind(x2_data, c(x2_update, fx2_update, i))
+ }
+ 
+ plot = plot + 
+  geom_point(data = x1_data, aes(x, obj, frame=nsteps, fill="x0 = 0.5"), 
+             size = 3) + 
+  geom_point(data = x2_data, aes(x, obj, frame = nsteps, fill="x0 = -0.5"),
+             size = 3) +
+  scale_fill_manual(name = '', 
+                    values =c(
+                              'x0 = 0.5'='#FF0000',
+                              'x0 = -0.5'='#00FFFF'), 
+                    labels = c(
+                               'x0 = 0.5', 
+                               'x0 = -0.5'))
+ 
+ 
+ fig = ggplotly(plot)  %>%
+  animation_opts( frame = 2000, transition = 1000, redraw = FALSE ) 
+ 
+ fig
 ```
 
 
@@ -1180,80 +1312,80 @@ A similar problem we may encounter is reaching a global minimum. For example, ta
 Assuming we are choosing a starting position $x_0$ randomly, gradient descent we will not get stuck on the maximum unless we choose $x_0 = -2 + \sqrt{ 2 }$, which will happen with probability $0$. However, our starting point will determine which of the minimum values we converge towards. If we are anywhere to the right of $-2 + \sqrt{ 2 }$, we will converge to the local minimum at $x=0$ and if we are to the left of $-2 + \sqrt{ 2 }$ we will converge to the global minimum at $-2 - \sqrt{ 2 }$.
 
 ``` {r, echo=FALSE, warning=FALSE}
-x = seq(-7.5,1,0.01)
-
-objective = function(x)
-{
- return(x^3 * exp(x) + x^2 * exp(x))
-}
-
-fx = data.frame(x = x, obj = objective(x))
-
-
-# Data frame of the zero point (x0, f(x0))
-zeros = c(0, -2 - sqrt(2))
-zero_points = data.frame( x = zeros, obj = objective(zeros))
-
-plot = ggplot() +
-  geom_vline(xintercept=-2+sqrt(2)) +
- geom_line(data = fx, aes(x, obj)) +
- geom_point(data = zero_points, aes(x, obj),
-            size = 2) + 
- ylab('x^3 e^x + x^2 e^x') +
- xlab('x')
-
-gradient = function(x)
-{
- return(2*x*exp(x) + 4*exp(x)*x^2 + exp(x)*x^3 )
-}
-
-# Find new iterate via gradient descent
-new_iterate = function(iterate, gradient_function, step_size)
-{
- return( iterate - step_size * gradient_function(iterate) )
-}
-
-# Initialize step sizes
-x01 = -0.5
-x02 = -1
-alpha = 0.2
-
-# Prepare data frames with initial observation
-x1_data = data.frame(x = x01, obj = objective(x01), nsteps = 0)
-x2_data = data.frame(x = x02, obj = objective(x02), nsteps = 0)
-
-# Perform max_iter iterations of gradient descent
-max_iter = 10
-for(i in 1:max_iter)
-{
- x1_update = new_iterate(tail(x1_data$x,1), gradient, alpha)
- fx1_update = objective(x1_update)
- x1_data = rbind(x1_data, c(x1_update, fx1_update, i))
+ x = seq(-7.5,1,0.01)
  
- x2_update = new_iterate(tail(x2_data$x,1), gradient, alpha)
- fx2_update = objective(x2_update)
- x2_data = rbind(x2_data, c(x2_update, fx2_update, i))
-}
-
-plot = plot + 
- geom_point(data = x1_data, aes(x, obj, frame=nsteps, fill="x0 = -0.5"), 
-            size = 3) + 
- geom_point(data = x2_data, aes(x, obj, frame = nsteps, fill="x0 = 1"),
-            size = 3) +
- scale_fill_manual(name = '', 
-                   values =c(
-                             'x0 = -0.5'='#FF0000',
-                             'x0 = 1'='#00FFFF'), 
-                   labels = c(
-                              'x0 = -0.5', 
-                              'x0 = 1')) +
- ylim(-1,2)
+ objective = function(x)
+ {
+  return(x^3 * exp(x) + x^2 * exp(x))
+ }
+ 
+ fx = data.frame(x = x, obj = objective(x))
 
 
-fig = ggplotly(plot)  %>%
- animation_opts( frame = 2000, transition = 1000, redraw = FALSE ) 
-
-fig
+ # Data frame of the zero point (x0, f(x0))
+ zeros = c(0, -2 - sqrt(2))
+ zero_points = data.frame( x = zeros, obj = objective(zeros))
+ 
+ plot = ggplot() +
+   geom_vline(xintercept=-2+sqrt(2)) +
+  geom_line(data = fx, aes(x, obj)) +
+  geom_point(data = zero_points, aes(x, obj),
+             size = 2) + 
+  ylab('x^3 e^x + x^2 e^x') +
+  xlab('x')
+ 
+ gradient = function(x)
+ {
+  return(2*x*exp(x) + 4*exp(x)*x^2 + exp(x)*x^3 )
+ }
+ 
+ # Find new iterate via gradient descent
+ new_iterate = function(iterate, gradient_function, step_size)
+ {
+  return( iterate - step_size * gradient_function(iterate) )
+ }
+ 
+ # Initialize step sizes
+ x01 = -0.5
+ x02 = -1
+ alpha = 0.2
+ 
+ # Prepare data frames with initial observation
+ x1_data = data.frame(x = x01, obj = objective(x01), nsteps = 0)
+ x2_data = data.frame(x = x02, obj = objective(x02), nsteps = 0)
+ 
+ # Perform max_iter iterations of gradient descent
+ max_iter = 10
+ for(i in 1:max_iter)
+ {
+  x1_update = new_iterate(tail(x1_data$x,1), gradient, alpha)
+  fx1_update = objective(x1_update)
+  x1_data = rbind(x1_data, c(x1_update, fx1_update, i))
+  
+  x2_update = new_iterate(tail(x2_data$x,1), gradient, alpha)
+  fx2_update = objective(x2_update)
+  x2_data = rbind(x2_data, c(x2_update, fx2_update, i))
+ }
+ 
+ plot = plot + 
+  geom_point(data = x1_data, aes(x, obj, frame=nsteps, fill="x0 = -0.5"), 
+             size = 3) + 
+  geom_point(data = x2_data, aes(x, obj, frame = nsteps, fill="x0 = 1"),
+             size = 3) +
+  scale_fill_manual(name = '', 
+                    values =c(
+                              'x0 = -0.5'='#FF0000',
+                              'x0 = 1'='#00FFFF'), 
+                    labels = c(
+                               'x0 = -0.5', 
+                               'x0 = 1')) +
+  ylim(-1,2)
+ 
+ 
+ fig = ggplotly(plot)  %>%
+  animation_opts( frame = 2000, transition = 1000, redraw = FALSE ) 
+ 
+ fig
 ```
 
 
@@ -1300,15 +1432,8 @@ $$
 x_k = x_{k-1}- [\nabla^2 f(x_{k-1})]^{-1} \nabla f(x_{k-1})
 $$
 
-We saw in the [Smoothing Time Series Data](##-Smoothing-Time-Series-Data) example that calculating the Hessian can be expensive, and inverting it can be more expensive yet. However, if there is special structure in the Hessian, perhaps it can quick to invert and it might make more sense to use Newton's method. It is important to fully assess the problem that you are investigating before committing to an algorithm.
+We saw in the Smoothing Time Series Data example that calculating the Hessian can be expensive, and inverting it can be more expensive yet. However, if there is special structure in the Hessian, perhaps it can quick to invert and it might make more sense to use Newton's method. It is important to fully assess the problem that you are investigating before committing to an algorithm.
 
 # References
  
- https://rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf
- 
- https://shiny.rstudio.com/reference/shiny/latest/numericInput.html
- 
- https://bookdown.org/yihui/rmarkdown/shiny.html
- 
- https://www.princeton.edu/~aaa/Public/Teaching/ORF523/S16/ORF523_S16_Lec7_gh.pdf
- https://blogs.princeton.edu/imabandit/2013/04/04/orf523-strong-convexity/
+This post came from class notes, handouts, and homework assignments for [Dr. Eric Chi](http://www.ericchi.com/)'s ST 790: Advanced Statistical Computing from Spring 2020.

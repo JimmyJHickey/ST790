@@ -1,0 +1,217 @@
+---
+title: "test"
+author: "Jimmy Hickey"
+date: "4/11/2020"
+output: html_document
+runtime: shiny
+---
+
+
+
+
+```{r}
+library(ggplot2)
+library(plotly)
+``` 
+
+Now we can implement our objective function, gradient, backtracking, and gradient descent code.
+
+``` {r, echo=TRUE, warning=FALSE}
+#' Nonnegative least squares objective function
+#'
+#' @param y response vector
+#' @param X design matrix
+#' @param b regression coefficient vector
+nnls_objective = function(y, X, b)
+{
+  return( 1/2 * norm(y - X %*% b, "2")^2 )
+}
+
+#' Nonnegative least squares gradient function
+#'
+#' @param y response vector
+#' @param X design matrix
+#' @param b regression coefficient vector
+nnls_gradient = function(y, X, b)
+{
+  return( -t(X) %*% y + t(X) %*% X %*% b )
+}
+
+
+#' Backtracking
+#'
+#' @param fx handle to function that returns objective function values
+#' @param df the value of the gradient of objective function evaluated at the current x
+#' @param x current parameter estimate
+#' @param alpha current step-size
+#' @param gamma the backtracking parameter
+#' @param beta the decrementing multiplier
+#' @export
+backtrack <- function(fx, x, alpha, df, gamma=0.5, beta=0.9) {
+  while( (fx(x - alpha * df ) >= fx(x) - alpha * gamma * norm(df, "2")^2)  & (alpha > 1e-10))
+      alpha <- alpha * beta
+
+  return(alpha)
+}
+
+#' Gradient Step
+#'
+#' @param gradf handle to function that returns gradient of objective function
+#' @param x current parameter estimate
+#' @param t step-size
+#' @export
+gradient_step <- function(gradf, x, t) {
+  return(x - t * gradf)
+}
+
+#' Gradient Descent (Backtracking Step-Size)
+#'
+#' @param fx handle to function that returns objective function values
+#' @param gradf handle to function that returns gradient of objective function
+#' @param x0 initial parameter estimate
+#' @param max_iter maximum number of iterations
+#' @param tol convergence tolerance
+#' @export
+gradient_descent_backtrack <- function(fx, gradf, x0, max_iter=1e2, tol=1e-3)
+{
+  # create vectors
+  objective_history = c()
+  gradient_history = c()
+  relative_objective_history = c()
+  relative_iterate_history = c()
+
+  # guess at step size
+  default_step_size = 1
+
+  # initialize variables
+  current_iterate = x0
+  gradient_history[1] = 0
+  objective_history[1] = fx(current_iterate)
+  relative_objective_history[1] = 0
+  relative_iterate_history[1] = 0
+  iterate_history = data.frame(intercept = current_iterate[1], slope = current_iterate[2])
+
+  # perform gradient descent until either
+  #   we have changed less than the tolerance
+  #   we have done the maximum number of iterations
+  for (i in 2:max_iter)
+  {
+
+    # Calculate gradient for current x
+    gradient_value = gradf(current_iterate)
+    gradient_history[i] = norm(gradient_value, '2')
+
+    # Calculate step size using backtracking
+    step_size = backtrack(fx = fx, x = current_iterate, alpha = default_step_size, df = gradient_value, gamma = 0.5, beta = 0.9)
+    
+    # Gradient step to get new objective iterate value
+    new_iterate = gradient_step(gradient_value, current_iterate, step_size)
+
+    objective_history[i] = fx(new_iterate)
+
+    relative_objective_history[i] = abs((objective_history[i] - objective_history[i-1]))/(1 + abs(objective_history[i]))
+    relative_iterate_history[i] = norm(new_iterate - current_iterate, '2') / (1 + norm(new_iterate, '2'))
+
+    current_iterate = new_iterate
+    iterate_history = rbind(iterate_history, c(current_iterate[1], current_iterate[2]))
+
+    # break if change less than tolerated amount
+    if (relative_objective_history[i] <= tol)
+      break
+
+  } # end for
+
+  return_list = list(
+    "final_iterate" = current_iterate,
+    "objective_history" = objective_history,
+    "gradient_history" = gradient_history,
+    "relative_objective_history" = relative_objective_history,
+    "relative_iterate_history" = relative_iterate_history,
+    "iterate_history" = iterate_history
+  )
+
+  return(return_list)
+}
+```
+
+Let's generate some data around the line $y = m x + b$. You can enter your slope $m$ and intecept $b$ below. We will take each $x$ value from 0 to 10, stepping by 0.1. We will then add some random noise from a $Normal(0,5)$ distribution to the function values.
+
+We will start our initial guess of the slope at 0 and then apply gradient descent to it. Our stopping rule is when the relative change in objective function is below $1\times 10^{-4}$.
+
+
+``` {r, echo=TRUE, warning=FALSE}
+sliderInput(
+  "intercept_input", label = "Intercept:",
+  min = 0, max = 5, value = 1, step = 0.5
+)
+
+sliderInput(
+  "slope_input", label = "Slope:",
+  min = 0, max = 25, value = 2.5, step = 0.5
+)
+
+
+# The function we are trying to estimate.
+linear_function = function(x, intercept, slope){
+  return(intercept + slope*x)
+}
+
+
+renderPlotly({
+  
+intercept = input$intercept_input
+slope = input$slope_input
+
+x = seq(0, 10, 0.1)
+
+y = linear_function(x, intercept, slope) + rnorm(length(x), 0, 5)
+orig_data = data.frame(x = x, y = y)
+
+b0_vec = as.vector(c(0, 0))
+x_mat = as.matrix(cbind(rep(1, length(x)), x))
+y_vec = as.vector(y)
+  
+
+nnls_objective_wrapper = function(b)
+{
+  nnls_objective(y = y_vec, X = x_mat, b = b)
+}
+
+nnls_gradient_wrapper = function(b)
+{
+  nnls_gradient(y = y_vec, X = x_mat, b = b)
+}
+
+
+grad_descent = gradient_descent_backtrack(nnls_objective_wrapper, 
+                           nnls_gradient_wrapper, 
+                           b0_vec, 
+                           max_iter=1e2, 
+                           tol=1e-4)
+  
+
+grad_descent_iterates = grad_descent$iterate_history
+grad_descent_iterates$ID = seq.int(nrow(grad_descent_iterates))
+
+
+plot = ggplot() +
+  geom_abline(slope = slope, intercept = intercept) +
+  geom_point(data = orig_data, aes(x, y), color = "blue", pch = 21, size = 3) +
+  geom_abline(data = grad_descent_iterates, aes(slope = slope, intercept = intercept, frame = ID), size = 0.5, color = 'red') + 
+  ylab('y') +
+  xlab('x')
+
+fig = ggplotly(plot)  %>%
+  animation_opts( frame = 2000, transition = 1000, redraw = FALSE ) 
+
+
+
+fig
+
+})
+
+renderDataTable({
+  head(grad_descent_iterates)
+})
+
+```

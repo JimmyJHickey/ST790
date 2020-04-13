@@ -2,14 +2,16 @@
 #'
 #' @param k order of the differencing matrix
 #' @param n Number of time points
-#' @param negative Flip signs, row one will look lie 1 -1 0 ... 0 (default: FALSE)
+#' @param negative Flip signs (default: FALSE)
+#'  TRUE:   row one of D^1_n will look like 1 -1 0 ... 0
+#'  FALSE:  row one of D^1_n will look like -1 1 0 ... 0
 #' @return kth order differencing matrix
 myGetDkn <- function(k, n, negative=FALSE)
 {
   library(Matrix)
   neg = negative
 
-  ii = 1 + (!negative) * (-2)
+  ii = 1 + (!neg) * (-2)
   iiplusone = -ii
 
    # create D1n
