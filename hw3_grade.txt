@@ -1,0 +1,28 @@
+Part 1:
+
+2) In the majorization step, why (theta + epsilon)/2(\sqrt{\tilde{\theta}+\epsilon}) > \sqrt{\theta + \epsilon} ? I don't see any reason for being that true. I am deducting point for that, if you think it is true, explain me, I will be happy to add points back.
+
+(-3)
+
+5) You can't say from the argument that the function is strongly convex, because the m that you choose if dependent on the diagonal entries of W which depends on beta. so the choice of m depends on beta. But to show strong convexity, you need to take an m which is independent of beta. 
+
+Actually, you don't need strong convexity here, strict convexity and coercivity is enough to ensure unique global minimum
+
+(-2)
+
+6) You have talk about why algorithm map is continuous and the fact that all fixed points are stationary points and stationary point is unique.
+
+(-2)
+
+23/30
+
+
+Part 2:
+
+In the newton_step_naive and smw function, you added a -negative sign to the output of solve, which I couldn't understand why. 
+
+(-3)
+
+57/60
+
+Grade : 80/90
