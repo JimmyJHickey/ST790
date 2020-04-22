@@ -9,6 +9,7 @@ gradient_step <- function(gradf, x, t) {
 }
 
 
+
 #' Backtracking
 #'
 #' @param fx handle to function that returns objective function values

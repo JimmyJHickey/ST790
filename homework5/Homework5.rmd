@@ -1,7 +1,7 @@
 ---
 title: "Homework 5"
 author: "Jimmy Hickey"
-date: "Due @ 11:59pm on April 18, 2020"
+date: "Due @ 11:59pm on April 22, 2020"
 header-includes:
   - \usepackage{bm}
   - \newcommand{\Real}{\mathbb{R}}
@@ -23,8 +23,11 @@ header-includes:
   - \newcommand{\Mtilde}[1]{{\bm{\tilde \mathbf{\MakeUppercase{#1}}}}} % matrix
   - \newcommand{\Mbar}[1]{{\bm{\bar \mathbf{\MakeUppercase{#1}}}}} % matrix
   - \newcommand{\Mn}[2]{\M{#1}^{(#2)}} % n-th matrix
+  - \newcommand{\norm}[1]{\left\lVert#1\right\rVert} % norm
 output: pdf_document
 ---
+
+# 1
 
 **Part 1.** In this homework we will study two algorithms for iteratively computing the generalized lasso solution.
 
@@ -36,7 +39,7 @@ where $\lambda \geq 0$ is a tuning parameter that trades off sparsity in the lin
 $$
 \text{minimize}\; \frac{1}{2} \lVert \V{y} - \V{b} \rVert_2^2 + \lambda \lVert \M{D}\V{b} \rVert_1,
 $$
-This is the case, for example, for the fused lasso or trend filtering. The optimization problem is challanging to solve due to the term $\lVert \M{D}\V{b} \rVert_1$.
+This is the case, for example, for the fused lasso or trend filtering. The optimization problem is challenging to solve due to the term $\lVert \M{D}\V{b} \rVert_1$.
 
 Thus, consider the following equivalent equality constrained problem.
 $$
@@ -54,11 +57,121 @@ $$
 \end{aligned}
 $$
 
+Let's use a Lagrangian to set up our primal problem with our constraint.
+
+\begin{align*}
+\psi_P(x) & = \frac{ 1 }{ 2 } \norm{y - b}_2^2 + \lambda \norm{\theta}_1 + \nu^T (Db - \theta) \\
+  & = \frac{ 1 }{ 2 } \norm{y}_2^2 - \frac{ 2 }{2 } y^T b + \frac{1  }{2  } \norm{b}_2^2 + \lambda \norm{ \theta}_1 + \nu^T D b - \nu^T \theta\\
+  & = \frac{ 1 }{ 2 } \norm{y}_2^2 + \frac{1  }{2  } \norm{b}_2^2 - (-D^T \nu + y)^T b + \lambda \norm{\theta}_1 - \nu^T \theta
+\end{align*}
+
+We can then complete the square.
+
+\begin{align*}
+\psi_P(x) & = \frac{ 1 }{ 2 } \norm{y}_2^2 + \frac{1  }{2  } \norm{b}_2^2 - (-D^T \nu + y)^T b + \frac{ 1 }{  2} \norm{y^T - D^T \nu}_2^2 + \lambda \norm{\theta}_1 - \nu^T \theta - \frac{ 1 }{  2} \norm{y^T - D^T \nu}_2^2 \\
+  & = \frac{ 1 }{ 2 } \norm{y}_2^2 + \lambda \norm{\theta}_1 - \nu^T \theta + \frac{1  }{2  } \norm{b- (y - D^T \nu)}_2^2 - \frac{  1}{2  } \norm{y - D^t \nu}_2^2
+\end{align*}
+
+Then we can optimize with respect to $b$ and $\theta$ to find the dual problem. We will first optimize $b$.
+
+\begin{align*}
+\nabla_b \psi_P(x) & = b + y-D^T\nu \stackrel{\text{set}}{=} 0\\
+b & = y - D^T \nu
+\end{align*}
+
+Plugging that in gives
+
+$$
+\frac{1  }{ 2 } \norm{y}_2^2 + \lambda \norm{\theta}_1 - \nu^T \theta - \frac{  1}{2  } \norm{y-D^T \nu}_2^2.
+$$
+
+Now we can optimize this with respect to $\theta$ by finding the infimum.
+
+\begin{align*}
+\inf_{\theta} \frac{1  }{ 2 } \norm{y}_2^2 + \lambda \norm{\theta}_1 - \nu^T \theta - \frac{  1}{2  } \norm{y-D^T \nu}_2^2 & = - \sup_{\theta} -\frac{1  }{ 2 } \norm{y}_2^2 - \lambda \norm{\theta}_1 + \nu^T \theta + \frac{  1}{2  } \norm{y-D^T \nu}_2^2 \\
+  & = sup_{\theta} \{ \nu^T \theta - \lambda \norm{\theta}_1 \}
+\end{align*}
+
+By the Legendre-Fenchel conjugate, $\norm{\nu}_\infty \leq \lambda$. Thus, we have our dual problem.
+
+
+
 **2.** What are the KKT conditions for this primal-dual pair of optimization problems?
+
+
+**Primal Feasibility**
+
+$$
+D b - \theta = 0
+$$
+
+**Dual Feasibility**
+
+
+$$
+\norm{\nu}_\infty \leq \lambda
+$$
+
+**Complementary Slackness**
+
+There are no inequality conditions.
+
+**Stationarity**
+
+From above we have
+
+$$
+b = y - D^T \nu.
+$$
+
+Taking the gradient with respect to $\theta$ gives the following condition.
+
+$$
+0 \in \nabla_\theta \psi_P = - \nu + \lambda \partial( \norm{\theta}_1) \rightarrow \nu \in \lambda \partial( \norm{\theta}_1)
+$$
+
+We can rewrite this.
+
+$$
+\nu_i \in
+\begin{cases}
+\lambda & \theta_i > 0 \\
+-\lambda & \theta_i < 0 \\
+[-\lambda, \lambda] & \theta_i = 0
+\end{cases}
+$$
+
 
 **3.** Convert your KKT conditions into a single scalar equation involving a KKT residual. You will use this and the duality gap to evaluate the correctness of your algorithms in part 2.
 
+Since we have strong duality by our constraint conditions, we know that the primal and dual solutions are the same. Thus, solving the dual problem will also solve the primal problem. 
+
+From our dual feasbility constraint, we know that $\norm{\nu}_\infty \leq \lambda$. Then, our KKT residual will look like
+
+$$
+\tau(\theta, \nu, i)_i = 
+\begin{cases}
+|\nu_i - \lambda| & \theta_i > 0 \\
+|\nu_i + \lambda | & \theta_i < 0 \\
+| |\nu_i| - \lambda |_+ & \theta_i = 0
+\end{cases}
+$$
+
+
+and we need to check that $\max_i \tau(\theta, \nu, i) \rightarrow 0$. We can also check the duality gap.
+
+$$
+\psi_P(b) - \psi_D(\nu)
+$$
+
 **4.** How do you map a dual variable $\V{v}$ to a primal variable $\V{b}$?
+
+We can use the first stationarity condition.
+
+$$
+b = y - D^T \nu
+$$
+
 
 Note that we may equivalently solve the following box constrained least squares problem.
 
@@ -70,6 +183,7 @@ $$
 $$
 
 **5.** Prove that the projection of $x \in \Real$ onto the interval $[-\lambda, \lambda]$ is given by
+
 $$
 P_{[-\lambda,\lambda]}(x) = \begin{cases}
 \lambda & x > \lambda \\
@@ -82,38 +196,321 @@ $$
 
 **6.** Derive a coordinate descent algorithm for solving the dual problem and write out pseudocode for your algorithm.
 
+ To find our update rule, we want to find the derivative of our objective function for each $\nu_i$. That is, we need 
+
+$$
+\frac{ \partial   }{\partial \nu_i} \Big[ \frac{ 1 }{ 2 }y^T y - y^T D^T \nu + \nu^T D D^T \nu \Big].
+$$
+
+Let's look at a small example to find the update rule. Take $k = 1$ and $n = 4$. Then
+
+$$
+y = 
+\begin{bmatrix}
+	y_{1} \\
+	y_{2} \\
+	y_{3} \\
+	y_4
+\end{bmatrix}, \ 
+D = \begin{bmatrix}
+	d_{11} & d_{12} & d_{13} & d_{14} \\
+	d_{21} & d_{22} & d_{23} & d_{24} \\
+	d_{31} & d_{32} & d_{33} & d_{34}
+\end{bmatrix}, \ 
+\nu = 
+\begin{bmatrix}
+	\nu_{1} \\
+	\nu_{2} \\
+	\nu_{3}
+\end{bmatrix}
+$$
+
+Let's look at the second and third terms of our objective function (because the first has no $\nu$ term, so it will have derivative $0$).
+
+
+\begin{align*}
+y^T D^T \nu & =  
+\begin{bmatrix}
+	y_1 &	y_2 & y_3 &y_4
+\end{bmatrix} 
+\begin{bmatrix}
+	d_{11} & d_{21} & d_{31} \\
+	d_{12} & d_{22} & d_{32} \\
+	d_{13} & d_{23} & d_{33} \\
+	d_{14} & d_{24} & d_{34} 
+\end{bmatrix}
+\begin{bmatrix}
+	\nu_1 \\
+	\nu_2 \\
+	\nu_3
+\end{bmatrix} \\
+ & = 
+ \begin{bmatrix}
+	y_1 d_{11} + y_{2} d_{12} + y_{3} d_{13} + y_4 d_{14} &
+	y_1 d_{21} + y_{2} d_{22} + y_{3} d_{23} + y_4 d_{24} &
+	y_1 d_{31} + y_{2} d_{32} + y_{3} d_{33} + y_4 d_{34} 
+\end{bmatrix}
+ \begin{bmatrix}
+	\nu_1 \\
+	\nu_2 \\
+	\nu_3
+\end{bmatrix} \\
+& = 
+\nu_1(y_1 d_{11} + y_{2} d_{12} + y_{3} d_{13} + y_4 d_{14}) + 
+\nu_2 (y_1 d_{21} + y_{2} d_{22} + y_{3} d_{23} + y_4 d_{24}) + 
+\nu_3 (y_1 d_{31} + y_{2} d_{32} + y_{3} d_{33} + y_4 d_{34} ) \\
+& = \sum_{i=1}^{3} \nu_i \sum_{j=1}^{4} y_j d_{ij}
+\end{align*}
+
+\begin{align*}
+\nu^T D D^T \nu & = 
+\begin{bmatrix}
+	\nu_1 &	\nu_2 &	\nu_3
+\end{bmatrix}
+\begin{bmatrix}
+	d_{11} & d_{12} & d_{13} & d_{14} \\
+	d_{21} & d_{22} & d_{23} & d_{24} \\
+	d_{31} & d_{32} & d_{33} & d_{34}
+\end{bmatrix}
+\begin{bmatrix}
+	d_{11} & d_{21} & d_{31} \\
+	d_{12} & d_{22} & d_{32} \\
+	d_{13} & d_{23} & d_{33} \\
+	d_{14} & d_{24} & d_{34} 
+\end{bmatrix}
+\begin{bmatrix}
+	\nu_1 \\
+	\nu_2 \\
+	\nu_3
+\end{bmatrix} \\
+& = v_{1} \Big(d_{11} (d_{11} v_{1} + d_{21} v_{2} + d_{31} v_{3}) + \\
+ &     d_{12} (d_{12} v_{1} + d_{22} v_{2} + d_{32} v_{3}) + \\
+ &     d_{13} (d_{13} v_{1} + d_{23} v_{2} + d_{33} v_{3}) + \\
+ &     d_{14} (d_{14} v_{1} + d_{24} v_{2} + d_{34} v_{3})\Big) + \\
+ &   v_{2} \Big(d_{21} (d_{11} v_{1} + d_{21} v_{2} + d_{31} v_{3}) + \\
+ &      d_{22} (d_{12} v_{1} + d_{22} v_{2} + d_{32} v_{3}) + \\
+ &      d_{23} (d_{13} v_{1} + d_{23} v_{2} + d_{33} v_{3}) + \\
+ &      d_{24} (d_{14} v_{1} + d_{24} v_{2} + d_{34} v_{3})\Big) + \\
+ &   v_{3} \Big(d_{31} (d_{11} v_{1} + d_{21} v_{2} + d_{31} v_{3}) + \\
+ &      d_{32} (d_{12} v_{1} + d_{22} v_{2} + d_{32} v_{3}) + \\
+ &      d_{33} (d_{13} v_{1} + d_{23} v_{2} + d_{33} v_{3}) + \\
+ &      d_{34} (d_{14} v_{1} + d_{24} v_{2} + d_{34} v_{3}\Big) \\
+ & = \sum_{i=1}^3 \nu_i \sum_{j=1}^4 d_{ij} \sum_{k=1}^3 d_{kj} \nu_k 
+\end{align*}
+
+Now we can take our derivative of these sums and find our update rule
+
+\begin{align*}
+\frac{ \partial f  }{\partial \nu_i} & = \frac{ \partial  }{\partial \nu_i} \sum_{i=1}^3 \nu_i \sum_{j=1}^4 d_{ij} \sum_{k=1}^3 d_{kj} \nu_k  - \sum_{i=1}^{3} \nu_i \sum_{j=1}^{4} y_j d_{ij} \\
+ & = - \sum_{j=1}^{4} y_j d_{ij} + \nu_i \sum_{j=1}^4 d_{ij}^2 + \sum_{k \neq i} \nu_j \sum_{j=1}^4 d_{ij} d_{kj} \\ \\
+ 0 & \stackrel{\text{set}}{=} - \sum_{j=1}^{4} y_j d_{ij} + \nu_i \sum_{j=1}^4 d_{ij}^2 + \sum_{k \neq i} \nu_j \sum_{j=1}^4 d_{ij} d_{kj} \\
+ \nu_i^+ & = \frac{ \sum_{j=1}^{4} y_j d_{ij} - \sum_{k \neq i} \nu_j \sum_{j=1}^4 d_{ij} d_{kj} }{ \sum_{j=1}^4 d_{ij}^2 }
+\end{align*}
+
+
+In general, our update rule is.
+
+$$
+\nu_i = \frac{ \sum_{j=1}^{n} d_{ij} y_j - \sum_{k \neq i} \nu_k \sum_{j=1}^n d_{kj} d_{ij}}{ \sum_{j=1}^n d^2_{ij} }.
+$$
+
+
+
 ```{r, tidy=FALSE, eval=FALSE, highlight=FALSE }
+initialize v0, y, D, step_size
+
+update(v, i)
+{
+  numerator = sum( d[i, j] * y[j], {j, 1, n} ) 
+  numerator = numerator - sum( v[k] * sum( d[k,j] * d[i,j], {j, 1, n} ), {k != i})
+  denominator = sum( d[i, j]^2, {j, 1, n} )
+  
+  return numerator / denominator
+}
+
+vnew = v0
+
 repeat
-  Do something
-  Do something else
-  etc.
+
+  for i in vnew:
+    vnew[i] = update(v, i)
+  
 until convergence
 ```
 
 **7.** Prove that the dual objective is Lipschitz differentiable with constant $L = \lVert \M{D} \rVert^2_{\text{op}}$.
 
+\begin{align*}
+f(\nu) &  =\frac{ 1 }{  2} \norm{y - D^T \nu}_2^2 \\
+  & = \frac{  1}{ 2 } y^T y - y^T D^T \nu + \frac{1 }{  2} \nu^T D D^T \nu \\ \\
+\nabla_\nu f(\nu) &  = D D^T \nu - D y \\ \\
+\nabla_\nu^2 f(\nu) &  = D D^T \\ \\
+\norm{\nabla_\nu^2 f(\nu)}_2 & = \norm{DD^T}_2 \\
+  & \leq \norm{D}_2 \norm{D^T}_2 \\
+  & = \norm{D}_2 \norm{D}_2 \\
+  & = \norm{D}_2^2 \\
+  & = \norm{D}_{\text{op}}^2
+\end{align*}
+
+
 **8.** Derive a proximal gradient algorithm for solving the dual problem and write out pseudocode for your algorithm.
 
+The gradient of our objective with respect to $\nu$ is
+
+$$
+\nabla_\nu f = D D^T \nu  - D y
+$$
+
 ```{r, tidy=FALSE, eval=FALSE, highlight=FALSE }
+initialize v0, y, D, step_size
+
+projection(v)
+{
+  if (v > lambda)
+    proj = lambda
+  elif( v < -lambda)
+    proj = -lambda
+  else
+    proj = v
+  
+  return proj
+}
+
+gradient_step(v)
+{
+  return projection( v - step_size * (D * D^T * v  - D * y ) ) 
+}
+
+vnew = v0
+
 repeat
-  Do something
-  Do something else
-  etc.
+  vnew = gradient_step(vnew)
 until convergence
 ```
 
+
+# 2
+
+You can find my code in `homework5/lasso_driver.R` and in my `jhickeyST790/R/generalized_lasso.R`.
+
+\newpage
+
 **Part 2.** You will implement a coordinate descent algorithm and proximal gradient algorithm for solving the trend filtering problem.
+
+Here are some helper functions.
+
+``` {r, echo=TRUE, warning=FALSE}
+#' Compute Lasso primal objective
+#'
+#' @param y response
+#' @param b primal variable
+#' @param D differencing matrix
+#' @param lambda regularization parameter
+#' @export
+lasso_primal = function(y, b, D, lambda )
+{
+ return( 1/2 * norm(y - b, "2")^2 + lambda * norm( D %*% b, '1') )
+}
+
+
+#' Compute Lasso dual objective
+#'
+#' @param y response
+#' @param v dual variable
+#' @param D differencing matrix
+#' @export
+lasso_dual = function(y, v, D)
+{
+ return(1/2 * norm(y - t(D) %*% v, '2')^2 )
+}
+
+
+#' Compute Lasso dual objective original
+#'
+#' @param y response
+#' @param v dual variable
+#' @param D differencing matrix
+#' @export
+lasso_dual_original = function(y, v, D)
+{
+  return( 1/2 * norm(y, '2')^2 - 1/2 * norm(y - t(D) %*% v, '2')^2 )
+}
+
+#' Compute Lasso dual objective
+#'
+#' @param y response
+#' @param v dual variable
+#' @param D differencing matrix
+#' @export
+lasso_dual_gradient = function(y, v, D)
+{
+ return( D %*% t(D) %*% v - D %*% y )
+}
+
+#' Compute the primal variable b from the dual variable
+#'
+#' @param y response
+#' @param v dual variable
+#' @param D differencing matrix
+#' @return the primal variable b
+#' @export
+dual_primal_map_b = function(y, v, D)
+{
+ return(y - t(D) %*% v)
+}
+
+
+#' Compute the primal variable theta from the dual variable
+#'
+#' @param y response
+#' @param v dual variable
+#' @param D differencing matrix
+#' @return the primal variable b
+#' @export
+dual_primal_map_theta = function(y, v, D)
+{
+ return(D %*% dual_primal_map_b(y, v, D))
+}
+```
+
+
 
 **Step 1:** Write a function to compute the $k$th order differencing matrix $\Mn{D}{k}_n$.
 
 ```{r, echo=TRUE}
 #' Compute kth order differencing matrix
-#' 
+#'
 #' @param k order of the differencing matrix
 #' @param n Number of time points
-#' @export
-myGetDkn <- function(k, n) {
-  
+#' @param negative Flip signs (default: FALSE)
+#'  TRUE:   row one of D^1_n will look like 1 -1 0 ... 0
+#'  FALSE:  row one of D^1_n will look like -1 1 0 ... 0
+#' @return kth order differencing matrix
+myGetDkn <- function(k, n, negative=FALSE)
+{
+  library(Matrix)
+  neg = negative
+
+  ii = 1 + (!neg) * (-2)
+  iiplusone = -ii
+
+   # create D1n
+  if (k==1)
+  {
+    D1 = matrix(nrow = n-1, ncol = n)
+    zeros_matrix = rep(0, n)
+
+    for(i in 1:n-1)
+    {
+      D1[i,] = zeros_matrix
+      D1[i,i] = ii
+      D1[i, i+1] = iiplusone
+    } # for
+    return(Matrix(D1, sparse = TRUE))
+  } # endif
+
+  return(myGetDkn(k=1, n=n - k + 1, neg) %*% myGetDkn(k=k-1, n=n, neg))
+
 }
 ```
 
@@ -121,7 +518,7 @@ myGetDkn <- function(k, n) {
 
 ```{r, echo=TRUE}
 #' Compute KKT residual
-#' 
+#'
 #' @param y response
 #' @param b primal variable
 #' @param theta primal variable
@@ -130,7 +527,16 @@ myGetDkn <- function(k, n) {
 #' @param lambda regularization parameter
 #' @export
 kkt_residual <- function(y, b, theta, v, D, lambda) {
-  
+
+ tau = v
+
+ # round theta so that values near 0 are 0
+ theta = round(theta, 7)
+
+ tau[theta != 0 ] = abs( abs(v[theta != 0]) - lambda )
+ tau[theta == 0 ] = max( abs(v[theta == 0]) - lambda, 0)
+
+ return(max(tau))
 }
 ```
 
@@ -139,7 +545,7 @@ kkt_residual <- function(y, b, theta, v, D, lambda) {
 **Step 3:** Write a function to compute the duality gap.
 ```{r, echo=TRUE}
 #' Compute duality gap
-#' 
+#'
 #' @param y response
 #' @param b primal variable
 #' @param v dual variable
@@ -147,23 +553,135 @@ kkt_residual <- function(y, b, theta, v, D, lambda) {
 #' @param lambda regularization parameter
 #' @export
 duality_gap <- function(y, b, v, D, lambda) {
-  
+ return( lasso_primal(y, b, D, lambda) -lasso_dual_original(y, v, D) )
 }
 ```
 
 **Step 4:** Write a coordinate descent algorithm for solving the dual problem. Use the relative change in function values as a stopping criterion.
 
 ```{r, echo=TRUE}
+#' Coordinate descent update
+#'
+#' @param y response
+#' @param v dual variable
+#' @param lambda regularization parameter
+#' @export
+coordinate_descent = function(v, lambda, D, y)
+{
+  v_update = v
+  n = length(v)
+  bool_array = rep(TRUE, n)
+
+  for (i in 1:n)
+  {
+    bool_array_i = bool_array
+    bool_array_i[i] = FALSE
+
+    # sum( d_ij * y_j, j=1:n)
+    numerator = sum( D[i, ] * y)
+
+    # numerator - \sum( v_k * \sum( d_kj* j_ij, j=1:n)  , k != i)
+    numerator = numerator + sum( v[bool_array_i] * D[bool_array_i, ] * D[i,] )
+
+    # denominator = sum( d_ij^2 , j: 1, n)
+    denominator = sum( D[i, ]^2 )
+
+    v_update[i] = numerator / denominator
+
+    v_update[i] = lasso_proxmap(v_update[i], lambda)
+  }
+
+  return(v_update)
+}
+
+
 #' Solve trend-filtering by coordinate descent on dual problem
-#' 
+#'
 #' @param y response
 #' @param k order of differencing matrix
 #' @param v Initial dual variable
 #' @param lambda regularization parameter
 #' @param max_iter maximum number of iterations
 #' @param tol convergence tolerance
+#' @return
+#' \itemize{
+#'   \item{final_iterate}{The final iterate}
+#'   \item{objective_history}{A vector of objective function value from each iteration.}
+#'   \item{relative_objective_history}{A vector of relative change in object value between iterations.}
+#'   \item{relative_iterate_history}{A vector of relative change in iterate value between iterations.}
+#'   \item{kkt_residual_history}{A vector of KKT residual value between iterations.}
+#'   \item{duality_gap_history}{A vector of duality gap value between iterations.}
+#' }
 trend_filter_cd <- function(y, k, v, lambda=0, max_iter=1e2, tol=1e-3) {
-  
+
+  # Create differencing matrix
+  n = length(y)
+  D = as.matrix(myGetDkn(k, n))
+
+  # Get Lipschitz step size
+  t = 1 / norm(D, '2')^2
+
+  b = dual_primal_map_b(y, v, D)
+  theta = dual_primal_map_theta(y, v, D)
+
+  # create vectors
+  objective_history = c()
+  relative_objective_history = c()
+  relative_iterate_history = c()
+  kkt_residual_history = c()
+  duality_gap_history = c()
+
+
+  # initialize variables
+  current_iterate = v
+  objective_history[1] = lasso_dual(y, current_iterate, D)
+  relative_objective_history[1] = 0
+  relative_iterate_history[1] = 0
+  kkt_residual_history[1] = kkt_residual(y = y, b = b,
+                                         theta = theta, v= current_iterate, D = D, lambda = lambda)
+  duality_gap_history[1] = duality_gap(y, b, v, D, lambda)
+
+  # perform gradient descent until either
+  #   we have changed less than the tolerance
+  #   we have done the maximum number of iterations
+  for (i in 2:max_iter)
+  {
+
+    # Coordinate Descent step
+    new_iterate = coordinate_descent(v = current_iterate,
+                                     lambda = lambda,
+                                     D = D,
+                                     y = y)
+
+    b = dual_primal_map_b(y, new_iterate, D)
+    theta = dual_primal_map_theta(y, new_iterate, D)
+
+    objective_history[i] = lasso_dual(y, new_iterate, D)
+
+    relative_objective_history[i] = abs((objective_history[i] - objective_history[i-1]))/(1 + abs(objective_history[i]))
+    relative_iterate_history[i] = norm(new_iterate - current_iterate, '2') / (1 + norm(new_iterate, '2'))
+
+    kkt_residual_history[i] = kkt_residual(y ,b, theta, new_iterate, D, lambda)
+    duality_gap_history[i] = duality_gap(y, b, new_iterate, D, lambda)
+
+    current_iterate = new_iterate
+
+    # break if change less than tolerated amount
+    if (duality_gap_history[i] <= tol)
+      break
+
+  } # end for
+
+  return_list = list(
+    "final_iterate" = current_iterate,
+    "objective_history" = objective_history,
+    "relative_objective_history" = relative_objective_history,
+    "relative_iterate_history" = relative_iterate_history,
+    "kkt_residual_history" = kkt_residual_history,
+    "duality_gap_history" = duality_gap_history
+  )
+
+  return(return_list)
 }
 ```
 
@@ -181,16 +699,120 @@ Your function should return
 **Step 5:** Write a proximal gradient algorithm for solving the dual problem. Use the relative change in function values as a stopping criterion. You may either use a fixed step size or write your own backtracking line search functions.
 
 ```{r, echo=TRUE}
+#' Compute Lasso proxmap
+#'
+#' @param v dual variable
+#' @param lambda regularization parameter
+#' @export
+lasso_proxmap = function(v, lambda){
+ return( ifelse(v > lambda, lambda,
+                ifelse(v < - lambda, -lambda, v) ))
+}
+
+#' Proximal Gradient Step
+#'
+#' @param proxmap handle to a function that returns the proximal map
+#' @param gradf gradient of the objective at x
+#' @param x current parameter estimate
+#' @param t step-size
+#' @param lambda regularization parameter
+#' @export
+proximal_gradient_step <- function(proxmap, gradf, x, t, lambda) {
+ return( proxmap( x - t * gradf, lambda) )
+}
+
+
 #' Solve trend-filtering by proximal gradient on dual problem
-#' 
+#'
 #' @param y response
 #' @param k order of differencing matrix
 #' @param v Initial dual variable
 #' @param lambda regularization parameter
 #' @param max_iter maximum number of iterations
 #' @param tol convergence tolerance
+#' @return
+#' \itemize{
+#'   \item{final_iterate}{The final iterate}
+#'   \item{objective_history}{A vector of objective function value from each iteration.}
+#'   \item{relative_objective_history}{A vector of relative change in object value between iterations.}
+#'   \item{relative_iterate_history}{A vector of relative change in iterate value between iterations.}
+#'   \item{kkt_residual_history}{A vector of KKT residual value between iterations.}
+#'   \item{duality_gap_history}{A vector of duality gap value between iterations.}
+#' }
 trend_filter_pg <- function(y, k, v, lambda=0, max_iter=1e2, tol=1e-3) {
-  
+
+ # Create differencing matrix
+ n = length(y)
+ D = as.matrix(myGetDkn(k, n))
+
+ # Get Lipschitz step size
+ t = 1 / norm(D, '2')^2
+
+ b = dual_primal_map_b(y, v, D)
+ theta = dual_primal_map_theta(y, v, D)
+
+ # create vectors
+ objective_history = c()
+ relative_objective_history = c()
+ relative_iterate_history = c()
+ kkt_residual_history = c()
+ duality_gap_history = c()
+
+
+ # initialize variables
+ current_iterate = v
+ objective_history[1] = lasso_dual(y, current_iterate, D)
+ relative_objective_history[1] = 0
+ relative_iterate_history[1] = 0
+ kkt_residual_history[1] = kkt_residual(y = y, b = b,
+                                        theta = theta, v= current_iterate, D = D, lambda = lambda)
+ duality_gap_history[1] = duality_gap(y, b, v, D, lambda)
+
+ # perform gradient descent until either
+ #   we have changed less than the tolerance
+ #   we have done the maximum number of iterations
+ for (i in 2:max_iter)
+ {
+
+   # Calculate gradient for current x
+   gradient_value = lasso_dual_gradient(y, v, D)
+
+   # Gradient step to get new objective iterate value
+   new_iterate = proximal_gradient_step(proxmap = lasso_proxmap,
+                                        gradf = gradient_value,
+                                        x = current_iterate,
+                                        t = t,
+                                        lambda = lambda)
+
+  b = dual_primal_map_b(y, new_iterate, D)
+  theta = dual_primal_map_theta(y, new_iterate, D)
+
+  objective_history[i] = lasso_dual(y, new_iterate, D)
+
+  relative_objective_history[i] = abs((objective_history[i] - objective_history[i-1]))/(1 + abs(objective_history[i]))
+  relative_iterate_history[i] = norm(new_iterate - current_iterate, '2') / (1 + norm(new_iterate, '2'))
+
+  kkt_residual_history[i] = kkt_residual(y ,b, theta, new_iterate, D, lambda)
+  duality_gap_history[i] = duality_gap(y, b, new_iterate, D, lambda)
+
+  current_iterate = new_iterate
+
+  # break if change less than tolerated amount
+  if (duality_gap_history[i] <= tol)
+   break
+
+ } # end for
+
+ return_list = list(
+  "final_iterate" = current_iterate,
+  "objective_history" = objective_history,
+  "relative_objective_history" = relative_objective_history,
+  "relative_iterate_history" = relative_iterate_history,
+  "kkt_residual_history" = kkt_residual_history,
+  "duality_gap_history" = duality_gap_history
+ )
+
+ return(return_list)
 }
 ```
 
@@ -215,3 +837,177 @@ For both algorithms (and one $\lambda$ and one differencing matrix) plot the fol
 - The relative change in the iterate values
 - The KKT residual after every iteration
 - The duality gap after every iteration
+
+For large $\lambda$ our dual problem will become essentially unconstrained. So notice the difference in output when we increase $\lambda$.
+
+We will look at APPL closing stock prices from 2018-01-01 to 2020-01-01. There is some extra drive and plotting code that you can find in the driver file script and below in the RMarkdown, however I will hide it to save space.
+
+Also, we will use the relative change in duality gap as our stopping condition so that we can try out the new functionality! We will, of course, plot all output.
+
+``` {r, echo=FALSE, warning=FALSE}
+library(ggplot2)
+library(tseries)
+
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+  if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+make_plots = function(y, k, lambda, max_iter=1e2, tol=1e-3)
+{
+  n = length(y)
+  v0 = rep(1, n-k)
+  D = as.matrix(myGetDkn(k, n))
+
+  cd_out = trend_filter_cd(y=y,
+                           k=k,
+                           v=v0,
+                           lambda = lambda,
+                           max_iter = max_iter,
+                           tol = tol)
+
+  cd_dual_out = y - t(D) %*% cd_out$final_iterate
+
+  aapl_1_df = data.frame(cbind(time_stock, cd_dual_out))
+  cd_plot = ggplot(data = aapl_1_df, aes(x = times)) +
+    geom_point(aes(y = Close), size = 0.1) +
+    geom_line(aes(y = cd_dual_out)) +
+    ggtitle(paste("CD Apple Stock Prices: ", expression(lambda), " =", lambda , ", k = ", k ))
+
+  plot(cd_plot)
+
+  iter_plot = ggplot() +
+    geom_point(aes( y= cd_out$relative_iterate_history, x = 1:length(cd_out$duality_gap_history))) +
+    ggtitle(paste("CD Relative Iterate History: ", expression(lambda), " =", lambda , ", k = ", k )) +
+    ylab("Relative Iterate") +
+    xlab("Iteration")
+
+  obj_plot = ggplot() +
+    geom_point(aes( y= cd_out$relative_objective_history, x = 1:length(cd_out$relative_objective_history))) +
+    ggtitle(paste("CD Relative Objective History: ", expression(lambda), " =", lambda , ", k = ", k )) +
+    ylab("Relative Objective") +
+    xlab("Iteration")
+
+  dg_plot = ggplot() +
+    geom_point(aes( y= cd_out$duality_gap_history, x = 1:length(cd_out$duality_gap_history))) +
+    ggtitle(paste("CD Duality Gap History: ", expression(lambda), " =", lambda , ", k = ", k )) +
+    ylab("Duality Gap") +
+    xlab("Iteration")
+
+  kkt_plot = ggplot() +
+    geom_point(aes( y= cd_out$kkt_residual_history, x = 1:length(cd_out$duality_gap_history))) +
+    ggtitle(paste("CD KKT Residual History: ", expression(lambda), " =", lambda , ", k = ", k )) +
+    ylab("KKT Residual") +
+    xlab("Iteration")
+
+  multiplot(iter_plot, obj_plot, dg_plot, kkt_plot, cols=2)
+
+  pg_out = trend_filter_pg(y=y,
+                           k=k,
+                           v=v0,
+                           lambda = lambda,
+                           max_iter = max_iter,
+                           tol = tol)
+
+  pg_dual_out = y - t(D) %*% pg_out$final_iterate
+
+  aapl_1_df = data.frame(cbind(time_stock, pg_dual_out))
+  pg_plot = ggplot(data = aapl_1_df, aes(x = times)) +
+    geom_point(aes(y = Close), size = 0.1) +
+    geom_line(aes(y = cd_dual_out)) +
+    ggtitle(paste("PG Apple Stock Prices: ", expression(lambda), " =", lambda , ", k = ", k ))
+
+  plot(pg_plot)
+
+  iter_plot = ggplot() +
+    geom_point(aes( y= pg_out$relative_iterate_history, x = 1:length(pg_out$duality_gap_history))) +
+    ggtitle(paste("PG Relative Iterate History: ", expression(lambda), " =", lambda , ", k = ", k )) +
+    ylab("Relative Iterate") +
+    xlab("Iteration")
+
+  obj_plot = ggplot() +
+    geom_point(aes( y= pg_out$relative_objective_history, x = 1:length(pg_out$relative_objective_history))) +
+    ggtitle(paste("PG Relative Objective History: ", expression(lambda), " =", lambda , ", k = ", k )) +
+    ylab("Relative Objective") +
+    xlab("Iteration")
+
+  dg_plot = ggplot() +
+    geom_point(aes( y= pg_out$duality_gap_history, x = 1:length(pg_out$duality_gap_history))) +
+    ggtitle(paste("PG Duality Gap History: ", expression(lambda), " =", lambda , ", k = ", k )) +
+    ylab("Duality Gap") +
+    xlab("Iteration")
+
+  kkt_plot = ggplot() +
+    geom_point(aes( y= pg_out$kkt_residual_history, x = 1:length(pg_out$duality_gap_history))) +
+    ggtitle(paste("PG KKT Residual History: ", expression(lambda), " =", lambda , ", k = ", k )) +
+    ylab("KKT Residual") +
+    xlab("Iteration")
+
+  multiplot(iter_plot, obj_plot, dg_plot, kkt_plot, cols=2)
+}
+
+apple_data = get.hist.quote( instrument = "AAPL",
+                             start = "2018-01-01",
+                             end = "2020-01-01",
+                             quote="Close")
+
+times = time(apple_data)
+time_stock = cbind(times, as.data.frame(apple_data))
+
+y=time_stock[,2]
+```
+
+``` {r, echo=TRUE, warning=FALSE}
+k = 2
+lambda = 0.1
+max_iter = 1e2
+tol=1e-3
+
+make_plots(y=y,k=k, lambda = lambda, max_iter=max_iter, tol=tol)
+
+k=2
+lambda = 10
+make_plots(y=y,k=k, lambda = lambda, max_iter=max_iter, tol=tol)
+
+k = 3
+lambda = 0.1
+max_iter = 1e2
+tol=1e-3
+
+make_plots(y=y,k=k, lambda = lambda, max_iter=max_iter, tol=tol)
+
+k=3
+lambda = 10
+make_plots(y=y,k=k, lambda = lambda, max_iter=max_iter, tol=tol)
+```
