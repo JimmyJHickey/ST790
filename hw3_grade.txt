@@ -21,8 +21,8 @@ Part 2:
 
 In the newton_step_naive and smw function, you added a -negative sign to the output of solve, which I couldn't understand why. 
 
-(-3)
+(-2)
 
 57/60
 
-Grade : 80/90
+Grade : 81/90
